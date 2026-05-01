@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TrendingUp, Sparkles, MessageSquare, ShieldCheck, Zap } from 'lucide-react';
 import { MiroFishEngine } from '../components/swarm/MiroFishEngine';
 import { db } from '../lib/db';
@@ -6,10 +6,29 @@ import { useLiveQuery } from 'dexie-react-hooks';
 
 export function Prediction() {
   const [showEngine, setShowEngine] = useState(false);
-  const [marketId] = useState("polymarket_id_1"); // Mock ID
-  const [question] = useState("Will Ethereum reach $5,000 by June 2026?");
+  const [marketId, setMarketId] = useState("polymarket_id_1"); 
+  const [question, setQuestion] = useState("Will Ethereum reach $5,000 by June 2026?");
 
   const history = useLiveQuery(() => db.swarmHistory.orderBy('timestamp').reverse().toArray());
+
+  useEffect(() => {
+    // Check for pending swarm from background script
+    if (typeof (window as any).chrome !== 'undefined' && (window as any).chrome.storage) {
+      (window as any).chrome.storage.local.get(['pendingSwarm'], (result: any) => {
+        if (result.pendingSwarm) {
+          const { question: q, marketId: mId, timestamp } = result.pendingSwarm;
+          // Only trigger if recent (last 1 min)
+          if (Date.now() - timestamp < 60000) {
+            setQuestion(q);
+            setMarketId(mId);
+            setShowEngine(true);
+            // Clear it
+            (window as any).chrome.storage.local.remove(['pendingSwarm']);
+          }
+        }
+      });
+    }
+  }, []);
 
   return (
     <div className="w-full h-full flex flex-col p-4 gap-4 overflow-y-auto">

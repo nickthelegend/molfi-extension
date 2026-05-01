@@ -8,6 +8,7 @@ import { Discover } from './screens/Discover';
 import { History } from './screens/History';
 import { Logbook } from './screens/Logbook';
 import { Prediction } from './screens/Prediction';
+import { Agents } from './screens/Agents';
 import { AnimatePresence, motion } from 'framer-motion';
 
 type SidebarTab = 'home' | 'history' | 'rewards' | 'wallet' | 'agents' | 'discover' | 'logbook' | 'profile' | 'prediction';
@@ -28,6 +29,7 @@ function App() {
       case 'history': return <History />;
       case 'logbook': return <Logbook />;
       case 'prediction': return <Prediction />;
+      case 'agents': return <Agents />;
       default: return <Home />;
     }
   };

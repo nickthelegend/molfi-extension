@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "Molfi Extension",
+  "version": "1.0.0",
+  "description": "Premium Agent Swarm & Prediction Market Intelligence",
+  "permissions": [
+    "sidePanel",
+    "tabs",
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://polymarket.com/*",
+    "http://localhost:5001/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "index.html"
+  },
+  "action": {
+    "default_title": "Open Molfi"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://polymarket.com/event/*"],
+      "js": ["content.js"]
+    }
+  ],
+  "icons": {
+    "16": "favicon.svg",
+    "48": "favicon.svg",
+    "128": "favicon.svg"
+  }
+}
