@@ -7,10 +7,11 @@ import {
   Compass, 
   BookText, 
   User,
-  LayoutDashboard
+  LayoutDashboard,
+  TrendingUp
 } from 'lucide-react';
 
-type SidebarTab = 'home' | 'history' | 'rewards' | 'wallet' | 'agents' | 'discover' | 'logbook' | 'profile';
+type SidebarTab = 'home' | 'history' | 'rewards' | 'wallet' | 'agents' | 'discover' | 'logbook' | 'profile' | 'prediction';
 
 interface SidebarProps {
   activeTab: SidebarTab;
@@ -55,6 +56,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
         <NavItem id="wallet" icon={Wallet} active={activeTab === 'wallet'} />
         <NavItem id="agents" icon={Bot} active={activeTab === 'agents'} />
         <NavItem id="discover" icon={Compass} active={activeTab === 'discover'} />
+        <NavItem id="prediction" icon={TrendingUp} active={activeTab === 'prediction'} />
         <NavItem id="logbook" icon={BookText} active={activeTab === 'logbook'} />
       </div>
 

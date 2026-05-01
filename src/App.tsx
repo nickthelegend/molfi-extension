@@ -7,9 +7,10 @@ import { Wallet } from './screens/Wallet';
 import { Discover } from './screens/Discover';
 import { History } from './screens/History';
 import { Logbook } from './screens/Logbook';
+import { Prediction } from './screens/Prediction';
 import { AnimatePresence, motion } from 'framer-motion';
 
-type SidebarTab = 'home' | 'history' | 'rewards' | 'wallet' | 'agents' | 'discover' | 'logbook' | 'profile';
+type SidebarTab = 'home' | 'history' | 'rewards' | 'wallet' | 'agents' | 'discover' | 'logbook' | 'profile' | 'prediction';
 
 function App() {
   const { isConnected } = useAccount();
@@ -26,6 +27,7 @@ function App() {
       case 'discover': return <Discover />;
       case 'history': return <History />;
       case 'logbook': return <Logbook />;
+      case 'prediction': return <Prediction />;
       default: return <Home />;
     }
   };
