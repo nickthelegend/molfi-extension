@@ -1,0 +1,68 @@
+import React from 'react';
+import { 
+  PlusCircle, 
+  History, 
+  Gift, 
+  Wallet, 
+  Bot, 
+  Compass, 
+  BookText, 
+  User,
+  LayoutDashboard
+} from 'lucide-react';
+import { motion } from 'framer-motion';
+
+type SidebarTab = 'home' | 'history' | 'rewards' | 'wallet' | 'agents' | 'discover' | 'logbook' | 'profile';
+
+interface SidebarProps {
+  activeTab: SidebarTab;
+  onTabChange: (tab: SidebarTab) => void;
+}
+
+export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
+  const NavItem = ({ id, icon: Icon, active }: { id: SidebarTab, icon: any, active: boolean }) => (
+    <button 
+      onClick={() => onTabChange(id)}
+      className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+        active 
+          ? 'bg-primary/20 text-primary' 
+          : 'text-on-surface-variant hover:bg-white/5 hover:text-white'
+      }`}
+    >
+      <Icon size={20} />
+    </button>
+  );
+
+  return (
+    <div className="w-16 h-full bg-surface-container border-r border-outline-variant/10 flex flex-col items-center py-6 gap-4">
+      {/* Logo */}
+      <button 
+        onClick={() => onTabChange('home')}
+        className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center mb-2 shadow-lg primary-glow"
+      >
+        <LayoutDashboard size={20} className="text-on-primary" />
+      </button>
+
+      {/* Top Group */}
+      <div className="flex flex-col gap-2">
+        <NavItem id="home" icon={PlusCircle} active={activeTab === 'home'} />
+        <NavItem id="history" icon={History} active={activeTab === 'history'} />
+        <NavItem id="rewards" icon={Gift} active={activeTab === 'rewards'} />
+      </div>
+
+      <div className="w-8 h-[1px] bg-outline-variant/20 my-2" />
+
+      {/* Middle Group */}
+      <div className="flex flex-col gap-2">
+        <NavItem id="wallet" icon={Wallet} active={activeTab === 'wallet'} />
+        <NavItem id="agents" icon={Bot} active={activeTab === 'agents'} />
+        <NavItem id="discover" icon={Compass} active={activeTab === 'discover'} />
+        <NavItem id="logbook" icon={BookText} active={activeTab === 'logbook'} />
+      </div>
+
+      <div className="mt-auto">
+        <NavItem id="profile" icon={User} active={activeTab === 'profile'} />
+      </div>
+    </div>
+  );
+}
