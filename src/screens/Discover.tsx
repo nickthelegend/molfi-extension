@@ -1,8 +1,29 @@
-import { Search, TrendingUp, BarChart2, Volume2, Target, Percent } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, TrendingUp, BarChart2, Volume2, Target, Percent, Loader2 } from 'lucide-react';
 
 export function Discover() {
+  const [tokens, setTokens] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTrending = async () => {
+      try {
+        // Fetch top gainers/trending from DeFi Llama or similar
+        const res = await fetch('https://api.llama.fi/top-protocols');
+        const json = await res.json();
+        // Just take the top 10 for "Trending"
+        setTokens(json.slice(0, 10));
+      } catch (error) {
+        console.error('Discover fetch error:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchTrending();
+  }, []);
+
   return (
-    <div className="w-full h-full flex flex-col p-4 gap-4 overflow-y-auto">
+    <div className="w-full h-full flex flex-col p-4 gap-4 overflow-y-auto pb-20">
       <div className="flex items-center gap-3 px-2">
         <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
           <TrendingUp size={18} />
@@ -10,18 +31,16 @@ export function Discover() {
         <h1 className="text-xl font-black text-white uppercase tracking-tight">Discover</h1>
       </div>
 
-      {/* Search */}
       <div className="relative group">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40 group-focus-within:text-primary transition-colors" size={16} />
         <input 
           type="text" 
-          placeholder="Search tokens..." 
+          placeholder="Search protocols & tokens..." 
           className="w-full bg-surface-container border border-outline-variant/10 rounded-2xl py-3.5 pl-12 pr-4 text-xs font-bold text-white placeholder:text-on-surface-variant/30 focus:outline-none focus:border-primary/40 transition-all"
         />
       </div>
 
       <div className="bg-surface-container rounded-[2rem] p-4 border border-outline-variant/10 flex-1 flex flex-col gap-6">
-        {/* Tabs */}
         <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
           <TabItem label="Trending" active icon={TrendingUp} />
           <TabItem label="Mcap" icon={BarChart2} />
@@ -30,14 +49,23 @@ export function Discover() {
           <TabItem label="Price Change" icon={Percent} />
         </div>
 
-        {/* Token List */}
         <div className="flex flex-col gap-2">
-          <TrendingItem name="Staked Orca" symbol="xORCA" price="$2.811" change="+12.81%" />
-          <TrendingItem name="Collector Crypt" symbol="CARDS" price="$0.115" change="+3.44%" />
-          <TrendingItem name="HYPE" symbol="HYPE" price="$40.64" change="+1.68%" />
-          <TrendingItem name="Avici" symbol="AVICI" price="$0.951" change="+1.48%" />
-          <TrendingItem name="Raydium" symbol="RAY" price="$0.841" change="+1.01%" />
-          <TrendingItem name="PUMPCADE" symbol="PUMPCADE" price="$0.033" change="+0.87%" />
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-12 gap-3 text-on-surface-variant/20">
+              <Loader2 className="animate-spin" size={24} />
+            </div>
+          ) : (
+            tokens.map((token, i) => (
+              <TrendingItem 
+                key={i}
+                name={token.name} 
+                symbol={token.symbol} 
+                price={`$${token.tvl > 1e9 ? (token.tvl/1e9).toFixed(1) + 'B' : (token.tvl/1e6).toFixed(1) + 'M'} TVL`} 
+                change={`${token.change_1d > 0 ? '+' : ''}${token.change_1d?.toFixed(2)}%`}
+                icon={token.logo}
+              />
+            ))
+          )}
         </div>
       </div>
     </div>
@@ -55,23 +83,21 @@ function TabItem({ label, active, icon: Icon }: any) {
   );
 }
 
-function TrendingItem({ name, symbol, price, change }: any) {
+function TrendingItem({ name, symbol, price, change, icon }: any) {
   return (
     <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-outline-variant/5 hover:bg-white/10 transition-all cursor-pointer">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-black/20 flex items-center justify-center overflow-hidden">
-          <div className="w-full h-full bg-primary/10 flex items-center justify-center font-black text-primary text-xs">
-            {symbol[0]}
-          </div>
+        <div className="w-10 h-10 rounded-xl bg-black/20 flex items-center justify-center overflow-hidden text-[8px] font-black">
+          {icon ? <img src={icon} className="w-full h-full object-cover" alt="" /> : symbol[0]}
         </div>
         <div className="flex flex-col">
-          <span className="text-sm font-black text-white">{name}</span>
+          <span className="text-sm font-black text-white uppercase tracking-tight truncate max-w-[100px]">{name}</span>
           <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">{symbol}</span>
         </div>
       </div>
       <div className="flex flex-col items-end">
         <span className="text-sm font-black text-white">{price}</span>
-        <span className="text-[10px] font-bold text-green-400">{change}</span>
+        <span className={`text-[10px] font-bold ${change.startsWith('-') ? 'text-red-400' : 'text-green-400'}`}>{change}</span>
       </div>
     </div>
   );
