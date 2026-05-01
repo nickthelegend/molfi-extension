@@ -1,4 +1,3 @@
-import React from 'react';
 import { useAppKit } from '@reown/appkit/react';
 import { LayoutDashboard, Wallet as WalletIcon } from 'lucide-react';
 import { motion } from 'framer-motion';

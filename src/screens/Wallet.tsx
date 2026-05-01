@@ -1,5 +1,4 @@
-import React from 'react';
-import { ArrowDownLeft, RefreshCw, ArrowUpRight, ChevronDown, ListFilter, EyeOff } from 'lucide-react';
+import { ArrowDownLeft, RefreshCw, ArrowUpRight, ListFilter, EyeOff } from 'lucide-react';
 
 export function Wallet() {
   return (

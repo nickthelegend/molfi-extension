@@ -1,4 +1,3 @@
-import React from 'react';
 import { 
   PlusCircle, 
   History, 
@@ -10,7 +9,6 @@ import {
   User,
   LayoutDashboard
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 type SidebarTab = 'home' | 'history' | 'rewards' | 'wallet' | 'agents' | 'discover' | 'logbook' | 'profile';
 

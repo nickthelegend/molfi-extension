@@ -1,4 +1,3 @@
-import React from 'react';
 import { Search, TrendingUp, BarChart2, Volume2, Target, Percent } from 'lucide-react';
 
 export function Discover() {

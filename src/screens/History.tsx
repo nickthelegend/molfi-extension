@@ -1,4 +1,3 @@
-import React from 'react';
 import { History as HistoryIcon, Search, PlusCircle, BookOpen } from 'lucide-react';
 
 export function History() {

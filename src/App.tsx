@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { Sidebar } from './components/Sidebar';
 import { ConnectWall } from './components/ConnectWall';

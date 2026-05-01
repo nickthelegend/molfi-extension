@@ -1,4 +1,3 @@
-import React from 'react';
 import { BookText, Search, Wallet, BookOpen } from 'lucide-react';
 
 export function Logbook() {

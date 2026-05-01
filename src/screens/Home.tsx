@@ -1,4 +1,3 @@
-import React from 'react';
 import { Search, Globe, Box, TrendingUp, Send } from 'lucide-react';
 
 export function Home() {
