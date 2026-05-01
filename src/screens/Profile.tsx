@@ -19,29 +19,39 @@ export function Profile() {
         <h1 className="text-xl font-black text-white uppercase tracking-tight">Profile</h1>
       </div>
 
-      <div className="flex flex-col items-center gap-4 py-8 bg-surface-container rounded-[2.5rem] border border-outline-variant/10 relative overflow-hidden group">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+      <div className="flex flex-col items-center gap-6 py-10 bg-surface-container-high rounded-[2.5rem] border border-outline-variant/20 relative group">
+        {/* Glow effect */}
+        <div className="absolute inset-0 bg-primary/5 blur-[40px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
         
-        <div className="relative mb-2">
-          <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-outline-variant/20 bg-black/40 p-1">
-            <img src={avatarUrl} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+        <div className="relative z-10">
+          <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-outline-variant/20 bg-black/40 p-1 shadow-2xl">
+            <img 
+              src={avatarUrl} 
+              alt="Avatar" 
+              className="w-full h-full rounded-full object-cover"
+              onError={(e) => (e.currentTarget.src = `https://api.dicebear.com/7.x/identicon/svg?seed=${address}`)} 
+            />
           </div>
-          <div className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-black border-4 border-surface-container cursor-pointer hover:scale-110 transition-transform" onClick={() => open()}>
-            <WalletIcon size={14} />
+          <div className="absolute bottom-1 right-1 w-9 h-9 rounded-full bg-primary flex items-center justify-center text-black border-4 border-surface-container-high cursor-pointer hover:scale-110 transition-transform shadow-lg" onClick={() => open()}>
+            <WalletIcon size={16} />
           </div>
         </div>
 
-        <div className="flex flex-col items-center gap-1 mb-4">
-          <h2 className="text-xl font-black text-white tracking-tight">
+        <div className="flex flex-col items-center gap-1 z-10">
+          <h2 className="text-2xl font-black text-white tracking-tight">
             {ensName || (isConnected ? `${address?.slice(0, 6)}...${address?.slice(-4)}` : 'Not Connected')}
           </h2>
-          <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-[0.2em]">Verified Human</span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] bg-primary/10 px-3 py-1 rounded-full border border-primary/20">Verified Human</span>
+          </div>
         </div>
 
-        {/* Reown AppKit Account Button */}
-        <div className="flex flex-col items-center gap-3 w-full px-8">
+        {/* Reown AppKit Buttons */}
+        <div className="flex flex-col items-center gap-3 w-full px-8 z-10">
            <appkit-button />
-           <appkit-network-button />
+           <div className="scale-90 opacity-80">
+             <appkit-network-button />
+           </div>
         </div>
       </div>
 

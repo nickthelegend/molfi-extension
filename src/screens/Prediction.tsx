@@ -8,6 +8,7 @@ export function Prediction() {
   const [showEngine, setShowEngine] = useState(false);
   const [marketId, setMarketId] = useState("polymarket_id_1"); 
   const [question, setQuestion] = useState("Will Ethereum reach $5,000 by June 2026?");
+  const [selectedHistoryId, setSelectedHistoryId] = useState<number | null>(null);
 
   const history = useLiveQuery(() => db.swarmHistory.orderBy('timestamp').reverse().toArray());
 
@@ -21,6 +22,7 @@ export function Prediction() {
           if (Date.now() - timestamp < 60000) {
             setQuestion(q);
             setMarketId(mId);
+            setSelectedHistoryId(null);
             setShowEngine(true);
             // Clear it
             (window as any).chrome.storage.local.remove(['pendingSwarm']);
@@ -30,8 +32,15 @@ export function Prediction() {
     }
   }, []);
 
+  const handleViewHistory = (id: number, q: string, mId: string) => {
+    setQuestion(q);
+    setMarketId(mId);
+    setSelectedHistoryId(id);
+    setShowEngine(true);
+  };
+
   return (
-    <div className="w-full h-full flex flex-col p-4 gap-4 overflow-y-auto">
+    <div className="w-full h-full flex flex-col p-4 gap-4 overflow-y-auto pb-20">
       <div className="flex items-center justify-between px-2">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
@@ -69,7 +78,7 @@ export function Prediction() {
 
             <div className="flex flex-col gap-3">
               <button 
-                onClick={() => setShowEngine(true)}
+                onClick={() => { setSelectedHistoryId(null); setShowEngine(true); }}
                 className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary transition-all active:scale-[0.98]"
               >
                 <Sparkles size={16} />
@@ -105,6 +114,7 @@ export function Prediction() {
                   result={item.direction} 
                   confidence={item.confidence} 
                   date={new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} 
+                  onClick={() => handleViewHistory(item.id, item.question, item.marketId)}
                 />
               ))}
               {(!history || history.length === 0) && (
@@ -124,7 +134,7 @@ export function Prediction() {
             ← Back to Markets
           </button>
           <div className="flex-1 overflow-hidden">
-            <MiroFishEngine marketId={marketId} question={question} />
+            <MiroFishEngine marketId={marketId} question={question} historyId={selectedHistoryId} />
           </div>
         </div>
       )}
@@ -132,9 +142,9 @@ export function Prediction() {
   );
 }
 
-function HistoryItem({ title, result, confidence, date }: any) {
+function HistoryItem({ title, result, confidence, date, onClick }: any) {
   return (
-    <div className="flex items-center justify-between p-4 rounded-2xl bg-surface-container/50 border border-outline-variant/5 hover:bg-white/5 transition-all cursor-pointer">
+    <div onClick={onClick} className="flex items-center justify-between p-4 rounded-2xl bg-surface-container/50 border border-outline-variant/5 hover:bg-white/5 transition-all cursor-pointer">
       <div className="flex flex-col gap-1">
         <span className="text-xs font-black text-white">{title}</span>
         <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-widest">{date}</span>

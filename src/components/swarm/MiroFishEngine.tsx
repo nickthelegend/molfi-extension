@@ -14,9 +14,10 @@ const API_BASE = "http://localhost:5001";
 interface MiroFishEngineProps {
   marketId: string;
   question: string;
+  historyId?: number | null;
 }
 
-export function MiroFishEngine({ marketId, question }: MiroFishEngineProps) {
+export function MiroFishEngine({ marketId, question, historyId }: MiroFishEngineProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [logs, setLogs] = useState<{ msg: string; type: "info" | "success" | "warning" | "error" | "system" }[]>([]);
   const [isRunning, setIsRunning] = useState(false);
@@ -26,10 +27,33 @@ export function MiroFishEngine({ marketId, question }: MiroFishEngineProps) {
   const [prepareProgress, setPrepareProgress] = useState(0);
 
   useEffect(() => {
-    if (!isRunning && currentStep === 1 && question) {
+    if (historyId) {
+      loadHistory();
+    } else if (!isRunning && currentStep === 1 && question) {
       startSwarm();
     }
-  }, [question]);
+  }, [question, historyId]);
+
+  const loadHistory = async () => {
+    if (!historyId) return;
+    setIsRunning(false);
+    addLog("Loading historical swarm consensus from IndexedDB...", "system");
+    
+    const record = await db.swarmHistory.get(historyId);
+    if (record) {
+      setAgentProfiles(record.agentProfiles || []);
+      setSimulationLogs(record.simulationLogs || []);
+      setPrediction({
+        direction: record.direction,
+        confidence: record.confidence,
+        consensus: record.consensus
+      });
+      setCurrentStep(5); // Jump straight to result
+      addLog("Historical record loaded successfully.", "success");
+    } else {
+      addLog("Failed to locate historical record.", "error");
+    }
+  };
 
   const addLog = (msg: string, type: "info" | "success" | "warning" | "error" | "system" = "info") => {
     setLogs((prev) => [...prev, { 

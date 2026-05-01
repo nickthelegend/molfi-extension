@@ -57,8 +57,8 @@ body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
-  width: 480px;
-  height: 600px;
+  width: 640px;
+  height: 720px;
 }
 
 @layer utilities {
