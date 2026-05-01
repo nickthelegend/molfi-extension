@@ -9,7 +9,8 @@ export function Discover() {
     const fetchTrending = async () => {
       try {
         // Fetch top gainers/trending from DeFi Llama or similar
-        const res = await fetch('https://api.llama.fi/top-protocols');
+        const res = await fetch('https://api.llama.fi/protocols');
+        if (!res.ok) throw new Error('Network response was not ok');
         const json = await res.json();
         // Just take the top 10 for "Trending"
         setTokens(json.slice(0, 10));

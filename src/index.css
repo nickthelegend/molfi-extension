@@ -57,7 +57,7 @@ body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
-  width: 400px;
+  width: 480px;
   height: 600px;
 }
 

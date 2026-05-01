@@ -214,7 +214,7 @@ export function MiroFishEngine({ marketId, question }: MiroFishEngineProps) {
       const data = await res.json();
       if (data.success && data.data) {
         setPrepareProgress(data.data.progress || 0);
-        if (data.data.status === "completed" || data.data.status === "ready") {
+        if (data.data.status === "completed" || data.data.runner_status === "completed" || data.data.status === "ready") {
            const profilesRes = await fetch(`${API_BASE}/api/simulation/${sId}/profiles`);
            const profilesData = await profilesRes.json();
            if (profilesData.success) setAgentProfiles(profilesData.data.profiles);
@@ -230,7 +230,7 @@ export function MiroFishEngine({ marketId, question }: MiroFishEngineProps) {
     while (true) {
       const res = await fetch(`${API_BASE}/api/simulation/${sId}/run-status/detail`);
       const data = await res.json();
-      if (data.data?.status === "completed" || data.data?.status === "stopped") break;
+      if (data.data?.status === "completed" || data.data?.runner_status === "completed" || data.data?.status === "stopped") break;
       if (data.data?.recent_actions) setSimulationLogs(data.data.recent_actions.slice(0, 10));
       await delay(2000);
     }

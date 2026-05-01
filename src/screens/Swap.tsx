@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, RefreshCw, ChevronDown, ActivityIndicator, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, RefreshCw, ChevronDown, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useAccount, useBalance } from 'wagmi';
 import { useSwap } from '../hooks/useSwap';
 
@@ -110,7 +110,7 @@ export function Swap({ onBack }: { onBack: () => void }) {
           </div>
           <div className="flex items-center justify-between gap-4">
             <div className="text-3xl font-black text-white flex-1 h-10 flex items-center">
-              {isQuotingLocal ? <ActivityIndicator className="w-6 h-6 animate-spin text-primary" /> : (quote ? parseFloat(quote.amountOutFormatted).toFixed(6) : <span className="text-white/10">0</span>)}
+              {isQuotingLocal ? <Loader2 className="w-6 h-6 animate-spin text-primary" /> : (quote ? parseFloat(quote.amountOutFormatted).toFixed(6) : <span className="text-white/10">0</span>)}
             </div>
             <button className="flex items-center gap-2 bg-white/5 hover:bg-white/10 px-3 py-2 rounded-2xl border border-outline-variant/10 transition-all shrink-0">
               <img src={tokenOut.icon} className="w-5 h-5 rounded-full" alt="" />
@@ -142,7 +142,7 @@ export function Swap({ onBack }: { onBack: () => void }) {
       )}
 
       <button disabled={!quote || isProcessing || step === 'done'} onClick={handleSwap} className={`w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${!quote || isProcessing || step === 'done' ? 'bg-white/5 text-on-surface-variant/20' : 'bg-primary text-black hover:bg-primary/90'}`}>
-        {isProcessing && <ActivityIndicator className="w-4 h-4 animate-spin" />}
+        {isProcessing && <Loader2 className="w-4 h-4 animate-spin" />}
         {STEP_LABELS[step]}
       </button>
     </div>

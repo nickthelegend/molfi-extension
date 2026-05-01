@@ -12,6 +12,7 @@ export function History() {
     if (!address) return;
     try {
       const res = await fetch(`${API_URL}/chat/sessions?walletAddress=${address}`);
+      if (!res.ok) throw new Error(`API returned ${res.status}`);
       const json = await res.json();
       if (json.success) setSessions(json.data);
     } catch (error) {

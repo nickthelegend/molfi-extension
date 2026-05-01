@@ -12,6 +12,7 @@ export function Agents() {
     if (!address) return;
     try {
       const res = await fetch(`${API_URL}/agents?walletAddress=${address}`);
+      if (!res.ok) throw new Error(`API returned ${res.status}`);
       const json = await res.json();
       if (json.success) setAgents(json.data);
     } catch (error) {

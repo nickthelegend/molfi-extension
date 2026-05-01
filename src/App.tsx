@@ -41,7 +41,7 @@ function App() {
   };
 
   return (
-    <div className="flex w-[400px] h-[600px] bg-background text-on-surface select-none overflow-hidden">
+    <div className="flex w-[480px] h-[600px] bg-background text-on-surface select-none overflow-hidden">
       <Sidebar activeTab={activeTab as any} onTabChange={setActiveTab as any} />
       
       <main className="flex-1 h-full overflow-hidden relative">

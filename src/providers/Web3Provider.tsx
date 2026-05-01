@@ -15,7 +15,19 @@ const metadata = {
   icons: ['https://avatars.githubusercontent.com/u/179229932']
 }
 
-const networks = [mainnet, arbitrum, base, polygon]
+const ogChain = {
+  id: 16661,
+  name: '0G Mainnet',
+  nativeCurrency: { name: 'A0GI', symbol: 'A0GI', decimals: 18 },
+  rpcUrls: {
+    default: { http: ['https://evmrpc.0g.ai'] },
+  },
+  blockExplorers: {
+    default: { name: '0G Scan', url: 'https://scan.0g.ai' },
+  },
+} as const;
+
+const networks = [ogChain, mainnet, arbitrum, base, polygon]
 
 const wagmiAdapter = new WagmiAdapter({
   networks,
@@ -28,6 +40,7 @@ createAppKit({
   networks: networks as [any, ...any[]],
   projectId,
   metadata,
+  defaultNetwork: ogChain,
   features: {
     analytics: true
   }

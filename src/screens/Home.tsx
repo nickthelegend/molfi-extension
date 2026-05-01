@@ -14,6 +14,7 @@ export function Home() {
       if (!address) return;
       try {
         const res = await fetch(`${API_URL}/portfolio?walletAddress=${address}`);
+        if (!res.ok) throw new Error(`API returned ${res.status}`);
         const json = await res.json();
         if (json.success) setTotalValue(json.data.totalValue);
       } catch (error) {

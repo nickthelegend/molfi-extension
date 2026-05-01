@@ -1,4 +1,4 @@
-import { ShieldCheck, Bell, Eye, Moon, Globe, CreditCard, HelpCircle, MessageSquare, Info, LogOut, ChevronRight, Wallet as WalletIcon } from 'lucide-react';
+import { User, ShieldCheck, Bell, Eye, Moon, Globe, CreditCard, HelpCircle, MessageSquare, Info, LogOut, ChevronRight, Wallet as WalletIcon } from 'lucide-react';
 import { useAccount, useDisconnect, useEnsName } from 'wagmi';
 import { useAppKit } from '@reown/appkit/react';
 
@@ -12,32 +12,37 @@ export function Profile() {
 
   return (
     <div className="w-full h-full flex flex-col p-4 gap-6 overflow-y-auto pb-20">
-      <div className="flex items-center gap-3 pt-4">
-        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
-          <img src="/logo.png" className="w-6 h-6" alt="" />
+      <div className="flex items-center gap-3 pt-4 px-2">
+        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+          <User size={22} />
         </div>
         <h1 className="text-xl font-black text-white uppercase tracking-tight">Profile</h1>
       </div>
 
-      <div className="flex flex-col items-center gap-4 py-6 bg-surface-container rounded-[2.5rem] border border-outline-variant/10 relative overflow-hidden group">
+      <div className="flex flex-col items-center gap-4 py-8 bg-surface-container rounded-[2.5rem] border border-outline-variant/10 relative overflow-hidden group">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-        <div className="relative">
-          <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-outline-variant/20 bg-black/40">
-            <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+        
+        <div className="relative mb-2">
+          <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-outline-variant/20 bg-black/40 p-1">
+            <img src={avatarUrl} alt="Avatar" className="w-full h-full rounded-full object-cover" />
           </div>
           <div className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-black border-4 border-surface-container cursor-pointer hover:scale-110 transition-transform" onClick={() => open()}>
             <WalletIcon size={14} />
           </div>
         </div>
-        <div className="flex flex-col items-center gap-1">
+
+        <div className="flex flex-col items-center gap-1 mb-4">
           <h2 className="text-xl font-black text-white tracking-tight">
             {ensName || (isConnected ? `${address?.slice(0, 6)}...${address?.slice(-4)}` : 'Not Connected')}
           </h2>
           <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-[0.2em]">Verified Human</span>
         </div>
-        <button onClick={() => open()} className="px-6 py-2 rounded-full bg-white/5 border border-outline-variant/10 text-[10px] font-black text-on-surface-variant uppercase tracking-widest hover:bg-white/10 transition-all active:scale-95">
-          Manage Wallet
-        </button>
+
+        {/* Reown AppKit Account Button */}
+        <div className="flex flex-col items-center gap-3 w-full px-8">
+           <appkit-button />
+           <appkit-network-button />
+        </div>
       </div>
 
       <div className="flex flex-col gap-8">
