@@ -10,10 +10,11 @@ import { Logbook } from './screens/Logbook';
 import { Prediction } from './screens/Prediction';
 import { Agents } from './screens/Agents';
 import { Swap } from './screens/Swap';
+import { Automations } from './screens/Automations';
 import { Profile } from './screens/Profile';
 import { AnimatePresence, motion } from 'framer-motion';
 
-type SidebarTab = 'home' | 'history' | 'rewards' | 'wallet' | 'agents' | 'discover' | 'logbook' | 'profile' | 'prediction' | 'swap';
+type SidebarTab = 'home' | 'history' | 'rewards' | 'wallet' | 'agents' | 'discover' | 'logbook' | 'profile' | 'prediction' | 'swap' | 'automations';
 
 function App() {
   const { isConnected } = useAccount();
@@ -34,6 +35,7 @@ function App() {
       case 'logbook': return <Logbook />;
       case 'prediction': return <Prediction />;
       case 'agents': return <Agents />;
+      case 'automations': return <Automations />;
       case 'swap': return <Swap onBack={() => setActiveTab('wallet')} />;
       case 'profile': return <Profile />;
       default: return <Home />;
