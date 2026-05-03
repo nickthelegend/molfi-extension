@@ -47,3 +47,18 @@ export const keeperHub = {
   listIntegrations: (type?: string) => keeperHubFetch(`/integrations${type ? `?type=${type}` : ''}`),
   getWalletIntegration: (id: string) => keeperHubFetch(`/integrations/web3/${id}`),
 };
+
+export const MOLFI_API_URL = 'http://localhost:3002/api';
+
+export const molfiOrchestrator = {
+  // Task Orchestrator
+  listTasks: (walletAddress: string) => fetch(`${MOLFI_API_URL}/tasks?walletAddress=${walletAddress}`).then(res => res.json()),
+  createTask: (data: any) => fetch(`${MOLFI_API_URL}/tasks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  }).then(res => res.json()),
+  deleteTask: (id: string) => fetch(`${MOLFI_API_URL}/tasks/${id}`, {
+    method: 'DELETE',
+  }).then(res => res.json()),
+};
