@@ -1,5 +1,5 @@
-import { Search, Globe, Box, TrendingUp, Send, User, Bot as BotIcon, Loader2, Plus, Sparkles } from 'lucide-react';
-import { useAccount, useBalance, useEnsName } from 'wagmi';
+import { Globe, Box, TrendingUp, Send, User, Bot as BotIcon, Plus, Sparkles } from 'lucide-react';
+import { useAccount, useEnsName } from 'wagmi';
 import { useState, useEffect, useRef } from 'react';
 import { API_URL } from '../constants/Config';
 import { SwapCard } from '../components/chat/SwapCard';
@@ -260,15 +260,6 @@ function SuggestionCard({ title, desc, onClick }: { title: string, desc: string,
         <span className="text-[10px] font-black text-white uppercase tracking-tight group-hover:text-primary transition-colors">{title}</span>
         <span className="text-[8px] font-black text-on-surface-variant uppercase tracking-widest leading-tight mt-1 block">{desc}</span>
       </div>
-    </button>
-  );
-}
-
-function Chip({ icon: Icon, label }: { icon: any, label: string }) {
-  return (
-    <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface-container border border-outline-variant/10 hover:border-primary/20 transition-all text-[11px] font-bold text-on-surface-variant hover:text-white">
-      <Icon size={14} className="text-primary" />
-      {label}
     </button>
   );
 }

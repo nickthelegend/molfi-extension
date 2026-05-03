@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Bot, 
@@ -10,7 +10,6 @@ import {
   Zap, 
   ShieldCheck, 
   Cpu,
-  ArrowRight,
   Info,
   Loader2,
   Terminal,
@@ -18,6 +17,7 @@ import {
   Brain
 } from 'lucide-react';
 import { useAccount, useBalance, useEnsName } from 'wagmi';
+import { formatUnits } from 'viem';
 import { useDebounce } from 'use-debounce';
 import { API_URL } from '../constants/Config';
 import { useEnsSubdomain } from '../hooks/useEnsSubdomain';
@@ -49,13 +49,10 @@ export function CreateAgent({ onBack, onSuccess }: { onBack: () => void, onSucce
   const [name, setName] = useState('');
   const [avatarColor, setAvatarColor] = useState(AVATAR_COLORS[0]);
   const [agentEnsSub, setAgentEnsSub] = useState('');
-  const [ensSubError, setEnsSubError] = useState('');
-  const [marketType, setMarketType] = useState<'tokens' | 'prediction'>('tokens');
   const [strategy, setStrategy] = useState('');
   const [freeFormPrompt, setFreeFormPrompt] = useState('');
   const [funding, setFunding] = useState('');
   const [riskLevel, setRiskLevel] = useState(5);
-  const [tradingPairs, setTradingPairs] = useState(['ETH/USDC', 'BTC/USDC']);
 
   const fullEnsDomain = ensParent && agentEnsSub ? `${agentEnsSub}.${ensParent}.eth` : null;
   const [debouncedDomain] = useDebounce(fullEnsDomain, 600);
@@ -111,11 +108,11 @@ export function CreateAgent({ onBack, onSuccess }: { onBack: () => void, onSucce
           body: JSON.stringify({
             ensSubdomain: fullEnsDomain,
             ensTxHash: txHash,
-            market: marketType,
+            market: 'prediction',
             strategy,
             funding: parseFloat(funding),
             riskLevel,
-            tradingPairs,
+            tradingPairs: ['ETH/USDC', 'BTC/USDC'],
             freeFormPrompt: strategy === 'AI Free Form' ? freeFormPrompt : null
           })
         });
@@ -128,13 +125,13 @@ export function CreateAgent({ onBack, onSuccess }: { onBack: () => void, onSucce
             walletAddress: address,
             name,
             strategy,
-            market: marketType,
+            market: 'prediction',
             avatarColor,
             createEns: !!agentEnsSub,
             config: {
               initialFunding: parseFloat(funding),
               riskLevel,
-              tradingPairs,
+              tradingPairs: ['ETH/USDC', 'BTC/USDC'],
               freeFormPrompt: strategy === 'AI Free Form' ? freeFormPrompt : null
             }
           })
@@ -344,7 +341,7 @@ export function CreateAgent({ onBack, onSuccess }: { onBack: () => void, onSucce
                     className="w-full bg-surface-container border border-outline-variant/10 rounded-2xl px-5 py-4 text-sm font-bold text-white placeholder:text-on-surface-variant/30 focus:outline-none focus:border-primary/50 transition-colors"
                   />
                   <div className="flex justify-between px-1">
-                    <span className="text-[8px] font-bold text-on-surface-variant/40 uppercase tracking-widest">Available: {balance?.formatted.slice(0, 6)} {balance?.symbol}</span>
+                    <span className="text-[8px] font-bold text-on-surface-variant/40 uppercase tracking-widest">Available: {balance ? formatUnits(balance.value, balance.decimals).slice(0, 6) : '0'} {balance?.symbol}</span>
                   </div>
                 </div>
 
@@ -441,7 +438,7 @@ export function CreateAgent({ onBack, onSuccess }: { onBack: () => void, onSucce
                 (step === 1 && !name) || 
                 (step === 2 && !strategy) || 
                 (step === 3 && !funding) ||
-                (step === 4 && fullEnsDomain && !ensAvailable)
+                (step === 4 && !!fullEnsDomain && ensAvailable === false)
               }
               className="flex-1 h-14 bg-white text-black rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary transition-all active:scale-[0.98] disabled:opacity-50 disabled:hover:bg-white"
             >

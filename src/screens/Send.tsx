@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { ArrowLeft, User, Coins, ChevronRight, ShieldCheck, Zap } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowLeft, User, Coins, ShieldCheck, Zap } from 'lucide-react';
 import { useAccount, useBalance } from 'wagmi';
+import { formatUnits } from 'viem';
 export function Send({ onBack }: { onBack: () => void }) {
   const { address } = useAccount();
   const [recipient, setRecipient] = useState('');
@@ -8,7 +9,7 @@ export function Send({ onBack }: { onBack: () => void }) {
   const { data: balance } = useBalance({ address });
 
   console.log(`[Send] Render. Address: ${address}, Recipient: ${recipient}, Amount: ${amount}`);
-  console.log(`[Send] Balance: ${balance?.formatted} ${balance?.symbol}`);
+  console.log(`[Send] Balance: ${balance ? formatUnits(balance.value, balance.decimals) : '0'} ${balance?.symbol}`);
 
   return (
     <div className="w-full h-full flex flex-col bg-background p-6 pt-12">
@@ -55,7 +56,7 @@ export function Send({ onBack }: { onBack: () => void }) {
           </div>
           <div className="flex justify-between items-center mb-4">
             <span className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Amount</span>
-            <span className="text-[10px] font-black text-primary uppercase">Max: {balance?.formatted?.slice(0, 8) || '0.00'} {balance?.symbol}</span>
+            <span className="text-[10px] font-black text-primary uppercase">Max: {balance ? formatUnits(balance.value, balance.decimals).slice(0, 8) : '0.00'} {balance?.symbol}</span>
           </div>
           <div className="flex items-baseline gap-3">
             <input 

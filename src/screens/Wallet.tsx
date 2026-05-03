@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ArrowDownLeft, RefreshCw, ArrowUpRight, ListFilter, EyeOff, Loader2, ShieldCheck, FileText, ExternalLink } from 'lucide-react';
 import { useAccount, useBalance, useEnsName } from 'wagmi';
+import { formatUnits } from 'viem';
 import { API_URL } from '../constants/Config';
 
 export function Wallet({ onAction }: { onAction: (action: string) => void }) {
   const { address } = useAccount();
-  const { data: nativeBalance, isLoading: isNativeLoading } = useBalance({ address: address as `0x${string}` });
+  const { data: nativeBalance } = useBalance({ address: address as `0x${string}` });
   const { data: ensName } = useEnsName({ address: address as `0x${string}`, chainId: 1 });
 
   const [portfolioData, setPortfolioData] = useState<any>(null);
@@ -55,7 +56,7 @@ export function Wallet({ onAction }: { onAction: (action: string) => void }) {
 
   const totalValue = Number(portfolioData?.totalValue || 0);
   const ethPrice = tokenPrices['0x0000000000000000000000000000000000000000'] || tokenPrices['ethereum'] || 2500;
-  const nativeValue = nativeBalance ? (parseFloat(nativeBalance.formatted) || 0) * ethPrice : 0;
+  const nativeValue = nativeBalance ? (parseFloat(formatUnits(nativeBalance.value, nativeBalance.decimals)) || 0) * ethPrice : 0;
   
   const displayTotalValue = (totalValue + nativeValue) || 0;
   const dailyPnL = portfolioData?.dailyPnL || 0;
@@ -112,7 +113,7 @@ export function Wallet({ onAction }: { onAction: (action: string) => void }) {
             <div className="flex flex-col items-center justify-center py-12 gap-3 text-on-surface-variant/40"><Loader2 className="animate-spin" size={24} /><span className="text-[10px] font-black uppercase tracking-widest">Syncing Portfolio...</span></div>
           ) : activeSubTab === 'tokens' ? (
             <>
-              <TokenItem name="Ethereum" symbol="ETH" balance={nativeBalance ? parseFloat(nativeBalance.formatted).toFixed(4) : '0.0000'} value={`$${nativeValue.toFixed(2)}`} change="+0.00%" color="text-green-400" icon="https://cryptologos.cc/logos/ethereum-eth-logo.png" />
+              <TokenItem name="Ethereum" symbol="ETH" balance={nativeBalance ? parseFloat(formatUnits(nativeBalance.value, nativeBalance.decimals)).toFixed(4) : '0.0000'} value={`$${nativeValue.toFixed(2)}`} change="+0.00%" color="text-green-400" icon="https://cryptologos.cc/logos/ethereum-eth-logo.png" />
               {portfolioData?.assets.map((asset: any) => {
                 const price = tokenPrices[asset.address.toLowerCase()] || 0;
                 const value = parseFloat(asset.amount) * price;

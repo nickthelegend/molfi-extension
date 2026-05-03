@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, RefreshCw, ChevronDown, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, RefreshCw, ChevronDown, Loader2, AlertCircle } from 'lucide-react';
 import { useAccount, useBalance } from 'wagmi';
+import { formatUnits } from 'viem';
 import { useSwap } from '../hooks/useSwap';
 
 const TOKENS = [
@@ -28,15 +29,15 @@ export function Swap({ onBack }: { onBack: () => void }) {
   const [tokenOut, setTokenOut] = useState(TOKENS[1]);
   const [isQuotingLocal, setIsQuotingLocal] = useState(false);
 
-  console.log(`[Swap] Render. Address: ${address}, Step: ${step}, Input: ${inputAmount}`);
-  console.log(`[Swap] Pair: ${tokenIn.symbol} -> ${tokenOut.symbol}`);
+  const { getQuote, executeSwap, step, quote, error, reset } = useSwap();
 
   const { data: balanceIn } = useBalance({ 
     address, 
-    token: tokenIn.address === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' || tokenIn.address === '0x0000000000000000000000000000000000000000' ? undefined : tokenIn.address as `0x${string}`,
-  });
+    token: (tokenIn.address === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' || tokenIn.address === '0x0000000000000000000000000000000000000000' ? undefined : tokenIn.address) as any,
+  } as any);
 
-  const { getQuote, executeSwap, step, quote, error, reset } = useSwap();
+  console.log(`[Swap] Render. Address: ${address}, Step: ${step}, Input: ${inputAmount}`);
+  console.log(`[Swap] Pair: ${tokenIn.symbol} -> ${tokenOut.symbol}`);
 
   useEffect(() => {
     console.log(`[Swap] Quote Effect. Amount: ${inputAmount}`);
@@ -96,7 +97,7 @@ export function Swap({ onBack }: { onBack: () => void }) {
           <div className="flex justify-between items-center mb-3">
             <span className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest">You Sell</span>
             <span className="text-[10px] font-bold text-on-surface-variant/60">
-              Balance: {balanceIn ? parseFloat(balanceIn.formatted).toFixed(4) : '0.0000'}
+              Balance: {balanceIn ? parseFloat(formatUnits(balanceIn.value, balanceIn.decimals)).toFixed(4) : '0.0000'}
             </span>
           </div>
           <div className="flex items-center justify-between gap-4">

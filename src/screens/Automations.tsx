@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { keeperHub } from '../utils/keeperhub';
-import { useAccount } from 'wagmi';
 import { Plus, Trash2, Zap, Play, Pause, AlertCircle, Loader2, BarChart3, ShieldCheck } from 'lucide-react';
 import { API_URL } from '../constants/Config';
 
@@ -79,7 +78,6 @@ const TEMPLATES = [
 ];
 
 export function Automations() {
-  const { address } = useAccount();
   const [workflows, setWorkflows] = useState<any[]>([]);
   const [integrations, setIntegrations] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -90,8 +88,8 @@ export function Automations() {
     fetchData();
     
     // Load context from local storage
-    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-      chrome.storage.local.get(['currentContext'], (result) => {
+    if (typeof (window as any).chrome !== 'undefined' && (window as any).chrome.storage && (window as any).chrome.storage.local) {
+      (window as any).chrome.storage.local.get(['currentContext'], (result: any) => {
         if (result.currentContext) {
           setContext(result.currentContext);
         }
@@ -103,8 +101,8 @@ export function Automations() {
           setContext(changes.currentContext.newValue);
         }
       };
-      chrome.storage.onChanged.addListener(listener);
-      return () => chrome.storage.onChanged.removeListener(listener);
+      (window as any).chrome.storage.onChanged.addListener(listener);
+      return () => (window as any).chrome.storage.onChanged.removeListener(listener);
     }
   }, []);
 
@@ -252,7 +250,7 @@ export function Automations() {
                 Suggested for {context.protocol}
               </h2>
               <button 
-                onClick={() => { setContext(null); chrome.storage.local.remove('currentContext'); }} 
+                onClick={() => { setContext(null); (window as any).chrome.storage.local.remove('currentContext'); }} 
                 className="text-[10px] text-on-surface-variant/40 hover:text-primary uppercase font-bold tracking-widest"
               >
                 Clear

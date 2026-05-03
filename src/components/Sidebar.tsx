@@ -39,9 +39,9 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       {/* Logo */}
       <button 
         onClick={() => onTabChange('home')}
-        className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center mb-2 shadow-lg primary-glow"
+        className="w-10 h-10 flex items-center justify-center mb-2 hover:opacity-80 transition-opacity"
       >
-        <LayoutDashboard size={20} className="text-on-primary" />
+        <img src="/logo.png" alt="Molfi" className="w-full h-full object-contain" />
       </button>
 
       {/* Top Group */}

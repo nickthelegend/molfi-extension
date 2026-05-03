@@ -33,12 +33,12 @@ export function Prediction() {
   }, []);
 
   const handleSyncFromTab = async () => {
-    if (typeof chrome === 'undefined' || !chrome.tabs) return;
+    if (typeof (window as any).chrome === 'undefined' || !(window as any).chrome.tabs) return;
     setIsSyncing(true);
     try {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      const [tab] = await (window as any).chrome.tabs.query({ active: true, currentWindow: true });
       if (tab.url?.includes('polymarket.com/event/')) {
-        const results = await chrome.scripting.executeScript({
+        const results = await (window as any).chrome.scripting.executeScript({
           target: { tabId: tab.id! },
           func: () => {
             const h1 = document.querySelector('h1')?.innerText;
@@ -207,7 +207,7 @@ export function Prediction() {
                   result={item.direction} 
                   confidence={item.confidence} 
                   date={new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} 
-                  onClick={() => handleViewHistory(item.id, item.question, item.marketId)}
+                  onClick={() => handleViewHistory(item.id as number, item.question, item.marketId)}
                 />
               ))}
               {(!history || history.length === 0) && (
