@@ -1,5 +1,4 @@
-export const KEEPERHUB_API_KEY = 'kh_DTYwoaGEN3H9KU7zNU6_4GNtMG29e2Di';
-export const KEEPERHUB_API_URL = 'https://app.keeperhub.com/api';
+export const KEEPERHUB_API_URL = 'http://localhost:3002/api/keeperhub';
 
 export async function keeperHubFetch(endpoint: string, options: RequestInit = {}) {
   const url = `${KEEPERHUB_API_URL}${endpoint}`;
@@ -7,7 +6,6 @@ export async function keeperHubFetch(endpoint: string, options: RequestInit = {}
     const response = await fetch(url, {
       ...options,
       headers: {
-        'Authorization': `Bearer ${KEEPERHUB_API_KEY}`,
         'Content-Type': 'application/json',
         ...options.headers,
       },
@@ -48,7 +46,7 @@ export const keeperHub = {
   getWalletIntegration: (id: string) => keeperHubFetch(`/integrations/web3/${id}`),
 };
 
-export const MOLFI_API_URL = 'http://192.168.1.6:3002/api';
+export const MOLFI_API_URL = 'http://localhost:3002/api';
 
 export const molfiOrchestrator = {
   // Task Orchestrator

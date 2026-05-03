@@ -55,7 +55,7 @@ export function Send({ onBack }: { onBack: () => void }) {
           </div>
           <div className="flex justify-between items-center mb-4">
             <span className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Amount</span>
-            <span className="text-[10px] font-black text-primary uppercase">Max: {balance?.formatted.slice(0, 8)} {balance?.symbol}</span>
+            <span className="text-[10px] font-black text-primary uppercase">Max: {balance?.formatted?.slice(0, 8) || '0.00'} {balance?.symbol}</span>
           </div>
           <div className="flex items-baseline gap-3">
             <input 

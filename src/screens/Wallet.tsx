@@ -27,13 +27,20 @@ export function Wallet({ onAction }: { onAction: (action: string) => void }) {
       if (aJson.success) setAgentWallets(aJson.data);
 
       const assetAddresses = pJson.data?.assets?.map((a: any) => `ethereum:${a.address}`) || [];
-      const ids = [...assetAddresses, 'ethereum:0x0000000000000000000000000000000000000000'].join(',');
+      const nativeIds = [
+        'ethereum:0x0000000000000000000000000000000000000000',
+        'coingecko:ethereum',
+        'base:0x4200000000000000000000000000000000000006'
+      ];
+      const ids = [...assetAddresses, ...nativeIds].join(',');
       const priceRes = await fetch(`https://coins.llama.fi/prices/current/${ids}`);
       const priceJson = await priceRes.json();
       const prices: Record<string, number> = {};
       if (priceJson.coins) {
         Object.keys(priceJson.coins).forEach(key => {
-          prices[key.split(':')[1].toLowerCase()] = priceJson.coins[key].price;
+          const addr = key.split(':')[1].toLowerCase();
+          prices[addr] = priceJson.coins[key].price;
+          if (key.includes('ethereum') || key.includes('coingecko')) prices['ethereum'] = priceJson.coins[key].price;
         });
       }
       setTokenPrices(prices);
@@ -46,9 +53,13 @@ export function Wallet({ onAction }: { onAction: (action: string) => void }) {
 
   useEffect(() => { fetchPortfolio(); }, [fetchPortfolio]);
 
-  const totalValue = portfolioData?.totalValue || 0;
-  const ethPrice = tokenPrices['0x0000000000000000000000000000000000000000'] || 2500;
-  const nativeValue = nativeBalance ? parseFloat(nativeBalance.formatted) * ethPrice : 0;
+  const totalValue = Number(portfolioData?.totalValue || 0);
+  const ethPrice = tokenPrices['0x0000000000000000000000000000000000000000'] || tokenPrices['ethereum'] || 2500;
+  const nativeValue = nativeBalance ? (parseFloat(nativeBalance.formatted) || 0) * ethPrice : 0;
+  
+  const displayTotalValue = (totalValue + nativeValue) || 0;
+  const dailyPnL = portfolioData?.dailyPnL || 0;
+  const dailyPnLPct = portfolioData?.dailyPnLPct || 0;
 
   return (
     <div className="w-full h-full flex flex-col p-4 gap-4 overflow-y-auto pb-20">
@@ -61,18 +72,16 @@ export function Wallet({ onAction }: { onAction: (action: string) => void }) {
             </span>
             <EyeOff size={12} className="text-on-surface-variant/40" />
           </div>
-          {portfolioData && (
-            <div className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest ${portfolioData.dailyPnL >= 0 ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
-              {portfolioData.dailyPnL >= 0 ? '+' : ''}{portfolioData.dailyPnLPct.toFixed(2)}%
-            </div>
-          )}
+          <div className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest ${dailyPnL >= 0 ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+            {dailyPnL >= 0 ? '+' : ''}{dailyPnLPct.toFixed(2)}%
+          </div>
         </div>
         <div className="flex items-baseline gap-2 mb-8 relative z-10">
           <span className="text-4xl font-black text-white">
-            ${(totalValue + nativeValue).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            ${displayTotalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
-          <span className={`text-xs font-bold ${portfolioData?.dailyPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-            {portfolioData?.dailyPnL >= 0 ? '+' : ''}{portfolioData?.dailyPnLPct.toFixed(1)}%
+          <span className={`text-xs font-bold ${dailyPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+            {dailyPnL >= 0 ? '+' : ''}{dailyPnLPct.toFixed(1)}%
           </span>
         </div>
         <div className="grid grid-cols-3 gap-3 relative z-10">

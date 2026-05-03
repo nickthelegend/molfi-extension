@@ -8,12 +8,29 @@ export function Discover() {
   useEffect(() => {
     const fetchTrending = async () => {
       try {
-        // Fetch top gainers/trending from DeFi Llama or similar
-        const res = await fetch('https://api.llama.fi/protocols');
+        setIsLoading(true);
+        // Fetch top volume pairs for Base and Ethereum from DexScreener
+        const res = await fetch('https://api.dexscreener.com/latest/dex/search?q=base%20eth');
         if (!res.ok) throw new Error('Network response was not ok');
         const json = await res.json();
-        // Just take the top 10 for "Trending"
-        setTokens(json.slice(0, 10));
+        
+        if (!json.pairs) throw new Error('No pairs found');
+
+        // Sort by volume and filter for Base/Ethereum
+        const sorted = json.pairs
+          .filter((p: any) => p.baseToken && (p.chainId === 'base' || p.chainId === 'ethereum'))
+          .sort((a: any, b: any) => (b.volume?.h24 || 0) - (a.volume?.h24 || 0))
+          .slice(0, 15);
+
+        const mapped = sorted.map((p: any) => ({
+          name: p.baseToken.name,
+          symbol: p.baseToken.symbol,
+          price: `$${parseFloat(p.priceUsd || '0').toLocaleString(undefined, { maximumFractionDigits: p.priceUsd < 1 ? 6 : 2 })}`,
+          change: `${p.priceChange?.h24 > 0 ? '+' : ''}${p.priceChange?.h24?.toFixed(2)}%`,
+          logo: p.info?.imageUrl || `https://tokens.llama.fi/token/${p.chainId === 'base' ? 'base' : 'ethereum'}/${p.baseToken.address}`
+        }));
+
+        setTokens(mapped);
       } catch (error) {
         console.error('Discover fetch error:', error);
       } finally {
@@ -61,8 +78,8 @@ export function Discover() {
                 key={i}
                 name={token.name} 
                 symbol={token.symbol} 
-                price={`$${token.tvl > 1e9 ? (token.tvl/1e9).toFixed(1) + 'B' : (token.tvl/1e6).toFixed(1) + 'M'} TVL`} 
-                change={`${token.change_1d > 0 ? '+' : ''}${token.change_1d?.toFixed(2)}%`}
+                price={token.price} 
+                change={token.change}
                 icon={token.logo}
               />
             ))
