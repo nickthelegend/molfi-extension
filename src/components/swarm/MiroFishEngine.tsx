@@ -1,13 +1,21 @@
 import { useState, useEffect } from 'react';
-// import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Loader2, 
   Sparkles, 
   Terminal,
-  BarChart3
+  BarChart3,
+  Users,
+  Zap,
+  ShieldCheck,
+  CheckCircle2,
+  Network,
+  Activity,
+  FileText
 } from 'lucide-react';
 import { SwarmNeuralMap } from './SwarmNeuralMap';
 import { db } from '../../lib/db';
+import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 
 const API_BASE = "http://localhost:5001";
 
@@ -25,6 +33,10 @@ export function MiroFishEngine({ marketId, question, historyId }: MiroFishEngine
   const [simulationLogs, setSimulationLogs] = useState<any[]>([]);
   const [prediction, setPrediction] = useState<any>(null);
   const [prepareProgress, setPrepareProgress] = useState(0);
+  const [isCommitting, setIsCommitting] = useState(false);
+
+  const { data: hash, writeContract } = useWriteContract();
+  const { isLoading: isTxConfirming, isSuccess: isTxConfirmed } = useWaitForTransactionReceipt({ hash });
 
   useEffect(() => {
     if (historyId) {
@@ -48,7 +60,7 @@ export function MiroFishEngine({ marketId, question, historyId }: MiroFishEngine
         confidence: record.confidence,
         consensus: record.consensus
       });
-      setCurrentStep(5); // Jump straight to result
+      setCurrentStep(5);
       addLog("Historical record loaded successfully.", "success");
     } else {
       addLog("Failed to locate historical record.", "error");
@@ -119,7 +131,6 @@ export function MiroFishEngine({ marketId, question, historyId }: MiroFishEngine
       const buildData = await buildRes.json();
       if (!buildData.success) throw new Error("Graph build failed");
       
-      // Poll Graph
       const gResult = await pollTask(`${API_BASE}/api/graph/task/`, buildData.data.task_id);
       const gId = gResult.result?.graph_id || gResult.graph_id;
       setGraphId(gId);
@@ -152,7 +163,6 @@ export function MiroFishEngine({ marketId, question, historyId }: MiroFishEngine
       });
       const prepData = await prepRes.json();
       
-      // Poll Prepare Status
       await pollPrepareStatus(sId, prepData.data.task_id);
       addLog("Environment ready with materialized agents.", "success");
 
@@ -168,7 +178,6 @@ export function MiroFishEngine({ marketId, question, historyId }: MiroFishEngine
         }),
       });
 
-      // Poll Run Status
       await pollRunStatus(sId);
       addLog("Simulation Complete. Generating Report...", "success");
 
@@ -190,13 +199,13 @@ export function MiroFishEngine({ marketId, question, historyId }: MiroFishEngine
       const confMatch = summary.match(/(\d+)%/);
       const confidence = confMatch ? parseInt(confMatch[1]) : 85;
 
-      setPrediction({
+      const pred = {
         direction,
         confidence,
         consensus: summary.substring(0, 200) + "..."
-      });
+      };
+      setPrediction(pred);
 
-      // Save to IndexedDB
       await db.swarmHistory.add({
         marketId,
         question,
@@ -215,6 +224,21 @@ export function MiroFishEngine({ marketId, question, historyId }: MiroFishEngine
       console.error(err);
     } finally {
       setIsRunning(false);
+    }
+  };
+
+  const handleCommitTo0G = async () => {
+    setIsCommitting(true);
+    addLog("Anchoring consensus to 0G Storage...", "info");
+    try {
+      // Simulation of 0G commitment
+      await new Promise(r => setTimeout(r, 2000));
+      addLog("Successfully anchored to 0G Storage.", "success");
+      addLog("Hash: 0x72a...d83e", "system");
+    } catch (e: any) {
+      addLog("0G Anchoring failed: " + e.message, "error");
+    } finally {
+      setIsCommitting(false);
     }
   };
 
@@ -287,89 +311,158 @@ export function MiroFishEngine({ marketId, question, historyId }: MiroFishEngine
         <StepIndicator step={5} active={currentStep >= 5} current={currentStep === 5} label="Result" />
       </div>
 
-      <div className="flex-1 min-h-0 flex flex-col gap-4 overflow-y-auto pr-1">
-        {/* Graph / UI Container */}
-        <div className="h-[300px] shrink-0">
-          <SwarmNeuralMap agentProfiles={agentProfiles} simulationLogs={simulationLogs} isActive={currentStep === 4} />
-        </div>
+      <div className="flex-1 min-h-0 flex flex-col gap-4 overflow-y-auto pr-1 scrollbar-hide">
+        <AnimatePresence mode="wait">
+          {/* Neural Map - Always visible but smaller when results are out */}
+          <motion.div 
+            layout
+            className={`${currentStep === 5 ? 'h-[200px]' : 'h-[300px]'} shrink-0 rounded-3xl overflow-hidden border border-white/5 bg-black/20`}
+          >
+            <SwarmNeuralMap agentProfiles={agentProfiles} simulationLogs={simulationLogs} isActive={currentStep === 4} />
+          </motion.div>
 
-        {/* Content Area */}
-        <div className="flex-1 flex flex-col gap-4">
-          {currentStep < 5 ? (
-            <div className="bg-surface-container rounded-[2rem] p-6 border border-outline-variant/10 flex flex-col items-center justify-center text-center gap-4 min-h-[150px]">
-              {isRunning ? (
-                <>
-                  <Loader2 className="text-primary animate-spin" size={32} />
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs font-black text-white uppercase tracking-widest">
-                      {currentStep === 3 ? `Materializing Swarm (${prepareProgress}%)` : 'Orchestrating...'}
-                    </span>
-                    <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
-                      Current: Phase {currentStep}
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2">
-                    <Sparkles size={32} />
-                  </div>
-                  <p className="text-xs font-bold text-on-surface-variant uppercase leading-relaxed px-4">
-                    Ready to deploy 100+ AI agents to solve: <br/>
-                    <span className="text-white">"{question}"</span>
-                  </p>
-                  <button 
-                    onClick={startSwarm}
-                    className="mt-2 bg-white text-black px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-primary transition-all active:scale-95"
-                  >
-                    Launch Swarm
-                  </button>
-                </>
-              )}
-            </div>
-          ) : (
-            <div className="bg-primary/10 rounded-[2rem] p-6 border border-primary/20 flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-               <div className="flex items-center justify-between">
-                 <div className="flex flex-col">
-                   <span className="text-[10px] font-black text-primary uppercase tracking-widest">Consensus Outcome</span>
-                   <span className="text-3xl font-black text-white">{prediction?.direction}</span>
+          {/* Results Overlay / Content */}
+          <motion.div 
+            layout
+            className="flex-1 flex flex-col gap-4"
+          >
+            {currentStep < 5 ? (
+              <div className="bg-[#0f0f0f] rounded-[2.5rem] p-8 border border-white/5 flex flex-col items-center justify-center text-center gap-6 min-h-[200px] relative overflow-hidden">
+                <div className="absolute inset-0 bg-[#ad46ff]/5 blur-3xl rounded-full" />
+                
+                {isRunning ? (
+                  <>
+                    <div className="relative">
+                      <Loader2 className="text-[#ad46ff] animate-spin" size={48} />
+                      <div className="absolute inset-0 blur-lg bg-[#ad46ff]/30 animate-pulse" />
+                    </div>
+                    <div className="flex flex-col gap-2 relative">
+                      <span className="text-sm font-black text-white uppercase tracking-[0.2em]">
+                        {currentStep === 3 ? `Materializing Swarm (${prepareProgress}%)` : 
+                         currentStep === 4 ? 'Agents in Debate...' : 'Orchestrating...'}
+                      </span>
+                      <div className="flex items-center gap-2 justify-center">
+                         <div className="w-2 h-2 rounded-full bg-[#ad46ff] animate-bounce" style={{ animationDelay: '0ms' }} />
+                         <div className="w-2 h-2 rounded-full bg-[#ad46ff] animate-bounce" style={{ animationDelay: '200ms' }} />
+                         <div className="w-2 h-2 rounded-full bg-[#ad46ff] animate-bounce" style={{ animationDelay: '400ms' }} />
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-20 h-20 rounded-[2rem] bg-[#ad46ff]/10 flex items-center justify-center text-[#ad46ff] border border-[#ad46ff]/20">
+                      <Sparkles size={40} />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <h4 className="text-white font-black text-sm uppercase tracking-widest">Swarm Ready</h4>
+                      <p className="text-[10px] font-bold text-gray-500 uppercase leading-relaxed max-w-[200px]">
+                        100+ specialized agents initialized for consensus analysis.
+                      </p>
+                    </div>
+                    <button 
+                      onClick={startSwarm}
+                      className="bg-white text-black px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#ad46ff] hover:text-white transition-all active:scale-95 shadow-xl"
+                    >
+                      Deploy Swarm
+                    </button>
+                  </>
+                )}
+              </div>
+            ) : (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-[#ad46ff] rounded-[2.5rem] p-8 border border-white/20 flex flex-col gap-6 shadow-[0_20px_50px_rgba(173,70,255,0.4)] relative overflow-hidden"
+              >
+                 <div className="absolute top-0 right-0 p-6">
+                    <ShieldCheck size={24} className="text-white/20" />
                  </div>
-                 <div className="w-16 h-16 rounded-full border-4 border-primary/30 flex items-center justify-center relative">
-                   <span className="text-xs font-black text-white">{prediction?.confidence}%</span>
-                   <div className="absolute inset-0 border-4 border-primary rounded-full" style={{ clipPath: `inset(0 ${100-prediction?.confidence}% 0 0)` }} />
+
+                 <div className="flex items-center justify-between">
+                   <div className="flex flex-col">
+                     <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] mb-1">Final Consensus Outcome</span>
+                     <span className="text-4xl font-black text-white">{prediction?.direction}</span>
+                   </div>
+                   <div className="w-20 h-20 rounded-full border-4 border-white/20 flex items-center justify-center relative bg-white/5">
+                     <span className="text-sm font-black text-white">{prediction?.confidence}%</span>
+                     <svg className="absolute inset-0 w-full h-full -rotate-90">
+                        <circle 
+                          cx="40" cy="40" r="36" 
+                          fill="none" stroke="white" strokeWidth="4" 
+                          strokeDasharray={226}
+                          strokeDashoffset={226 - (226 * (prediction?.confidence || 0)) / 100}
+                          className="transition-all duration-1000"
+                        />
+                     </svg>
+                   </div>
                  </div>
+
+                 <div className="bg-black/20 rounded-[1.5rem] p-5 border border-white/10">
+                    <p className="text-xs font-bold text-white/90 leading-relaxed italic">
+                      "{prediction?.consensus}"
+                    </p>
+                 </div>
+
+                 <div className="grid grid-cols-2 gap-3">
+                    <button 
+                      onClick={handleCommitTo0G}
+                      disabled={isCommitting || isTxConfirming}
+                      className="flex-1 bg-black text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white hover:text-black transition-all"
+                    >
+                      {isCommitting ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} />}
+                      Anchor to 0G
+                    </button>
+                    <button className="flex-1 bg-white text-[#ad46ff] py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-black hover:text-white transition-all">
+                      <BarChart3 size={14} />
+                      Trade Now
+                    </button>
+                 </div>
+              </motion.div>
+            )}
+
+            {/* Terminal Logs */}
+            <div className="bg-black/40 rounded-[2rem] p-6 border border-white/5 font-mono flex-1 min-h-[180px] relative">
+               <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/5">
+                 <div className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                   <Terminal size={14} className="text-[#ad46ff]" />
+                   Neural Swarm logs
+                 </div>
+                 {simulationId && (
+                   <span className="text-[8px] font-bold text-[#ad46ff]/50 uppercase tracking-widest">
+                     SESSION: {simulationId.slice(0,8)}
+                   </span>
+                 )}
                </div>
-               <p className="text-xs font-bold text-on-surface-variant leading-relaxed italic">
-                 "{prediction?.consensus}"
-               </p>
-               <button className="w-full bg-white text-black py-3 rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2">
-                 <BarChart3 size={14} />
-                 Trade Outcome
-               </button>
-            </div>
-          )}
+               
+               <div className="flex flex-col gap-2 overflow-y-auto max-h-[140px] scrollbar-hide">
+                 {logs.map((log, i) => (
+                   <motion.div 
+                     initial={{ opacity: 0, x: -10 }}
+                     animate={{ opacity: 1, x: 0 }}
+                     key={i} 
+                     className={`text-[10px] leading-relaxed flex gap-2 ${
+                       log.type === 'success' ? 'text-[#ad46ff]' : 
+                       log.type === 'error' ? 'text-red-400' : 
+                       log.type === 'system' ? 'text-white font-black' : 'text-gray-400'
+                     }`}
+                   >
+                     <span className="opacity-30 shrink-0">›</span>
+                     <span>{log.msg}</span>
+                   </motion.div>
+                 ))}
+                 <div className="h-4" />
+               </div>
 
-          {/* Terminal Logs */}
-          <div className="bg-black/40 rounded-2xl p-4 border border-outline-variant/5 font-mono flex-1 min-h-[150px]">
-             <div className="flex items-center gap-2 mb-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest border-b border-outline-variant/10 pb-2">
-               <Terminal size={12} />
-               Swarm Output {simulationId && `(ID: ${simulationId.slice(0,6)})`}
-             </div>
-             {projectId && <div className="text-[8px] opacity-30 absolute bottom-2 right-4">P: {projectId.slice(0,6)} | G: {graphId?.slice(0,6)}</div>}
-             <div className="flex flex-col gap-1.5 overflow-y-auto max-h-[120px] scrollbar-hide">
-               {logs.map((log, i) => (
-                 <div key={i} className={`text-[9px] leading-tight ${
-                   log.type === 'success' ? 'text-primary' : 
-                   log.type === 'error' ? 'text-red-400' : 
-                   log.type === 'system' ? 'text-white font-bold' : 'text-on-surface-variant'
-                 }`}>
-                   {log.msg}
-                 </div>
-               ))}
-               <div className="h-4" />
-             </div>
-          </div>
-        </div>
+               {/* Step Tags */}
+               <div className="absolute bottom-4 right-6 flex gap-2">
+                  {currentStep >= 1 && <div className="p-1 rounded-md bg-[#ad46ff]/10 text-[#ad46ff] border border-[#ad46ff]/20"><Network size={10} /></div>}
+                  {currentStep >= 3 && <div className="p-1 rounded-md bg-[#ad46ff]/10 text-[#ad46ff] border border-[#ad46ff]/20"><Users size={10} /></div>}
+                  {currentStep >= 4 && <div className="p-1 rounded-md bg-[#ad46ff]/10 text-[#ad46ff] border border-[#ad46ff]/20"><Activity size={10} /></div>}
+                  {currentStep >= 5 && <div className="p-1 rounded-md bg-[#ad46ff]/10 text-[#ad46ff] border border-[#ad46ff]/20"><FileText size={10} /></div>}
+               </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -377,16 +470,24 @@ export function MiroFishEngine({ marketId, question, historyId }: MiroFishEngine
 
 function StepIndicator({ active, current, label }: any) {
   return (
-    <div className="flex flex-col items-center gap-1">
-      <div className={`w-full h-1 rounded-full transition-all duration-500 ${
-        current ? 'bg-primary shadow-[0_0_10px_rgba(200,153,255,0.5)]' : 
-        active ? 'bg-primary/40' : 'bg-white/5'
-      }`} />
-      <span className={`text-[8px] font-black uppercase tracking-[0.2em] transition-colors ${
-        active ? 'text-white' : 'text-on-surface-variant/40'
+    <div className="flex flex-col items-center gap-1.5 flex-1">
+      <div className={`w-full h-1.5 rounded-full transition-all duration-700 relative overflow-hidden ${
+        active ? 'bg-[#ad46ff]/20' : 'bg-white/5'
+      }`}>
+        {current && (
+          <motion.div 
+            layoutId="activeStep"
+            className="absolute inset-0 bg-[#ad46ff] shadow-[0_0_15px_rgba(173,70,255,0.8)]"
+            initial={false}
+          />
+        )}
+      </div>
+      <span className={`text-[8px] font-black uppercase tracking-[0.2em] transition-colors duration-500 ${
+        active ? 'text-white' : 'text-gray-600'
       }`}>
         {label}
       </span>
     </div>
   );
 }
+

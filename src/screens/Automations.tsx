@@ -90,20 +90,22 @@ export function Automations() {
     fetchData();
     
     // Load context from local storage
-    chrome.storage.local.get(['currentContext'], (result) => {
-      if (result.currentContext) {
-        setContext(result.currentContext);
-      }
-    });
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.get(['currentContext'], (result) => {
+        if (result.currentContext) {
+          setContext(result.currentContext);
+        }
+      });
 
-    // Listen for context updates
-    const listener = (changes: any) => {
-      if (changes.currentContext) {
-        setContext(changes.currentContext.newValue);
-      }
-    };
-    chrome.storage.onChanged.addListener(listener);
-    return () => chrome.storage.onChanged.removeListener(listener);
+      // Listen for context updates
+      const listener = (changes: any) => {
+        if (changes.currentContext) {
+          setContext(changes.currentContext.newValue);
+        }
+      };
+      chrome.storage.onChanged.addListener(listener);
+      return () => chrome.storage.onChanged.removeListener(listener);
+    }
   }, []);
 
   const fetchData = async () => {
