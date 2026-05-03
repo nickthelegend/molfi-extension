@@ -2,11 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { Bot, Sparkles, PlusCircle, ShieldCheck, Zap, Loader2 } from 'lucide-react';
 import { useAccount } from 'wagmi';
 import { API_URL } from '../constants/Config';
+import { CreateAgent } from './CreateAgent';
 
 export function Agents() {
   const { address } = useAccount();
   const [agents, setAgents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showCreate, setShowCreate] = useState(false);
 
   const fetchAgents = useCallback(async () => {
     if (!address) return;
@@ -25,6 +27,18 @@ export function Agents() {
   useEffect(() => {
     fetchAgents();
   }, [fetchAgents]);
+
+  if (showCreate) {
+    return (
+      <CreateAgent 
+        onBack={() => setShowCreate(false)} 
+        onSuccess={() => {
+          setShowCreate(false);
+          fetchAgents();
+        }} 
+      />
+    );
+  }
 
   return (
     <div className="w-full h-full flex flex-col p-6 gap-6 overflow-y-auto pb-20">
@@ -52,7 +66,10 @@ export function Agents() {
             </p>
           </div>
 
-          <button className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary transition-all active:scale-[0.98] shadow-lg shadow-black/20">
+          <button 
+            onClick={() => setShowCreate(true)}
+            className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary transition-all active:scale-[0.98] shadow-lg shadow-black/20"
+          >
             <PlusCircle size={16} />
             Deploy New Agent
           </button>
@@ -89,8 +106,8 @@ export function Agents() {
             ))
           ) : (
             <>
-              <AgentTemplate icon={Zap} title="Trend Sniper" desc="High-frequency momentum trader" />
-              <AgentTemplate icon={ShieldCheck} title="Alpha Harvester" desc="Early token detection & accumulation" />
+              <AgentTemplate icon={Zap} title="Trend Sniper" desc="High-frequency momentum trader" onClick={() => setShowCreate(true)} />
+              <AgentTemplate icon={ShieldCheck} title="Alpha Harvester" desc="Early token detection & accumulation" onClick={() => setShowCreate(true)} />
             </>
           )}
         </div>
@@ -99,9 +116,9 @@ export function Agents() {
   );
 }
 
-function AgentTemplate({ icon: Icon, title, desc }: any) {
+function AgentTemplate({ icon: Icon, title, desc, onClick }: any) {
   return (
-    <div className="flex items-center gap-4 p-4 rounded-2xl bg-surface-container/50 border border-outline-variant/5 hover:bg-white/5 transition-all cursor-pointer group">
+    <div onClick={onClick} className="flex items-center gap-4 p-4 rounded-2xl bg-surface-container/50 border border-outline-variant/5 hover:bg-white/5 transition-all cursor-pointer group">
       <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-on-surface-variant group-hover:text-primary transition-colors">
         <Icon size={18} />
       </div>
