@@ -12,8 +12,12 @@ const projectId = '22260d6680223859f9b07dadfafce02d'
 const metadata = {
   name: 'Molfi Extension',
   description: 'AI-Native Crypto Trading Ecosystem',
-  url: 'https://molfi.app',
-  icons: ['https://avatars.githubusercontent.com/u/179229932']
+  url: 'chrome-extension://ihpnbahopefdndenbnafpnekdapomjmm',
+  icons: ['https://avatars.githubusercontent.com/u/179229932'],
+  redirect: {
+    native: 'molfi://',
+    universal: 'molfi.app'
+  }
 }
 
 const ogChain = {
@@ -33,7 +37,7 @@ const networks = [ogChain, mainnet, arbitrum, base, polygon]
 const wagmiAdapter = new WagmiAdapter({
   networks,
   projectId,
-  ssr: true
+  ssr: false
 })
 
 createAppKit({
@@ -47,8 +51,9 @@ createAppKit({
     email: true,
     socials: ['google', 'x', 'github', 'discord', 'apple'],
     emailShowWallets: true,
+    onramp: false,
   },
-  allWallets: 'HIDE', // Helps avoid loading too many external assets in extension
+  allWallets: 'HIDE',
 })
 
 // Ensure BaseError is initialized for inheritance

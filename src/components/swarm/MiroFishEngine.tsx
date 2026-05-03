@@ -32,6 +32,8 @@ export function MiroFishEngine({ marketId, question, historyId }: MiroFishEngine
   const [prediction, setPrediction] = useState<any>(null);
   const [prepareProgress, setPrepareProgress] = useState(0);
   const [isCommitting, setIsCommitting] = useState(false);
+  const [simulationId, setSimulationId] = useState<string | null>(null);
+  const [reportId, setReportId] = useState<string | null>(null);
 
   const { data: hash } = useWriteContract();
   const { isLoading: isTxConfirming } = useWaitForTransactionReceipt({ hash });
@@ -184,8 +186,10 @@ export function MiroFishEngine({ marketId, question, historyId }: MiroFishEngine
       });
       const repGenData = await repGenRes.json();
       const rId = repGenData.data.report_id;
+      setReportId(rId);
+      const tId = repGenData.data.task_id;
 
-      const finalReport = await pollReportStatus(rId);
+      const finalReport = await pollReportStatus(sId, tId, rId);
       
       const summary = finalReport.outline?.summary || finalReport.markdown_content || "";
       const isNo = /negative|against|decline|no|rejected/i.test(summary.substring(0, 500));
@@ -278,16 +282,31 @@ export function MiroFishEngine({ marketId, question, historyId }: MiroFishEngine
     }
   };
 
-  const pollReportStatus = async (reportId: string) => {
+  const pollReportStatus = async (sId: string, taskId: string, reportId: string) => {
     while (true) {
-      const res = await fetch(`${API_BASE}/api/report/generate/status?report_id=${reportId}`);
+      const res = await fetch(`${API_BASE}/api/report/generate/status`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task_id: taskId, simulation_id: sId }),
+      });
+      
+      if (!res.ok) {
+        const text = await res.text();
+        if (text.includes("<!doctype")) {
+          throw new Error(`Backend Error: Received HTML instead of JSON (Status ${res.status}). Check backend routes.`);
+        }
+        throw new Error(`HTTP Error: ${res.status}`);
+      }
+
       const data = await res.json();
       if (data.data?.status === "completed") {
         const finalRes = await fetch(`${API_BASE}/api/report/${reportId}`);
         const fd = await finalRes.json();
         return fd.data;
       }
-      if (data.data?.status === "failed") throw new Error("Report generation failed");
+      if (data.data?.status === "failed") {
+        throw new Error(data.data.message || "Report generation failed (check backend logs for rate limits)");
+      }
       await delay(2000);
     }
   };
@@ -405,6 +424,13 @@ export function MiroFishEngine({ marketId, question, historyId }: MiroFishEngine
                     >
                       {isCommitting ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} />}
                       Anchor to 0G
+                    </button>
+                    <button 
+                      onClick={() => window.open(`${API_BASE}/api/report/${reportId}/download`)}
+                      className="flex-1 bg-white text-[#ad46ff] py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-black hover:text-white transition-all"
+                    >
+                      <FileText size={14} />
+                      View Report
                     </button>
                     <button className="flex-1 bg-white text-[#ad46ff] py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-black hover:text-white transition-all">
                       <BarChart3 size={14} />
