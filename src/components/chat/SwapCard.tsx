@@ -32,20 +32,25 @@ interface SwapCardProps {
 
 const FALLBACK_ADDRESSES: Record<string, Record<string, string>> = {
   '1': {
+    'ETH': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
     'USDC': '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
     'USDT': '0xdAC17F958D2ee523a2206206994597C13D831ec7',
     'WETH': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
   },
   '137': {
+    'ETH': '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
+    'MATIC': '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
     'USDC': '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
     'WMATIC': '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
     'USDT': '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
   },
   '8453': {
+    'ETH': '0x4200000000000000000000000000000000000006',
     'USDC': '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
     'WETH': '0x4200000000000000000000000000000000000006',
   },
   '42161': {
+    'ETH': '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
     'USDC': '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
     'WETH': '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
   },
@@ -88,14 +93,22 @@ export const SwapCard: React.FC<SwapCardProps> = ({ payload }) => {
     
     if (!fromTokenAddr || !toTokenAddr) return;
 
+    // Smart Decimal Detection
+    const getDecimals = (symbol: string | undefined) => {
+      const s = symbol?.toUpperCase();
+      if (s === 'USDC' || s === 'USDT') return 6;
+      if (s === 'ETH' || s === 'WETH' || s === 'MATIC') return 18;
+      return 18;
+    };
+
     reset();
     getQuote({
       chainId: fromChain,
       tokenIn: fromTokenAddr as `0x${string}`,
       tokenOut: toTokenAddr as `0x${string}`,
-      tokenInDecimals: swapParams.tokenInDecimals ?? 6,
-      tokenOutDecimals: swapParams.tokenOutDecimals ?? 18,
-      amountIn: swapParams.amount,
+      tokenInDecimals: (swapParams.tokenInDecimals as number) ?? getDecimals(swapParams.symbolIn),
+      tokenOutDecimals: (swapParams.tokenOutDecimals as number) ?? getDecimals(swapParams.symbolOut),
+      amountIn: String(swapParams.amount),
     });
   }, [swapParams, fromChain, getQuote, reset]);
 
@@ -111,13 +124,19 @@ export const SwapCard: React.FC<SwapCardProps> = ({ payload }) => {
     const fromTokenAddr = tokenIn || FALLBACK_ADDRESSES[String(fromChain)]?.[swapParams.symbolIn?.toUpperCase()];
     const toTokenAddr = tokenOut || FALLBACK_ADDRESSES[String(fromChain)]?.[swapParams.symbolOut?.toUpperCase()];
 
+    const getDecimals = (symbol: string) => {
+      const s = symbol?.toUpperCase();
+      if (s === 'USDC' || s === 'USDT') return 6;
+      return 18;
+    };
+
     await executeSwap({
       chainId: fromChain,
       tokenIn: fromTokenAddr as `0x${string}`,
       tokenOut: toTokenAddr as `0x${string}`,
-      tokenInDecimals: swapParams.tokenInDecimals ?? 6,
-      tokenOutDecimals: swapParams.tokenOutDecimals ?? 18,
-      amountIn: swapParams.amount,
+      tokenInDecimals: (swapParams.tokenInDecimals as number) ?? getDecimals(swapParams.symbolIn),
+      tokenOutDecimals: (swapParams.tokenOutDecimals as number) ?? getDecimals(swapParams.symbolOut),
+      amountIn: String(swapParams.amount),
     });
   };
 
@@ -175,11 +194,19 @@ export const SwapCard: React.FC<SwapCardProps> = ({ payload }) => {
       {/* Network Selector */}
       <div className="flex items-center justify-between mb-6 relative z-10">
         <span className="text-[9px] font-black text-on-surface-variant uppercase tracking-widest">Network</span>
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/10">
-          <div className="w-2 h-2 rounded-full bg-primary" />
+        <button 
+          onClick={() => {
+            const ids = [1, 137, 8453, 42161];
+            const currentIndex = ids.indexOf(fromChain);
+            const nextIndex = (currentIndex + 1) % ids.length;
+            setFromChain(ids[nextIndex]);
+          }}
+          className="flex items-center gap-2 px-3 py-1.5 bg-white/10 rounded-full border border-white/20 hover:bg-primary/20 hover:border-primary/40 transition-all active:scale-95"
+        >
+          <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
           <span className="text-[10px] font-black text-white uppercase tracking-tight">{CHAIN_NAMES[fromChain]}</span>
           <ChevronDown size={10} className="text-on-surface-variant" />
-        </div>
+        </button>
       </div>
 
       {/* Error / Success */}

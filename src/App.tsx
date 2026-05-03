@@ -56,9 +56,9 @@ function App() {
   };
 
   return (
-    <div className="flex w-[640px] h-[720px] bg-background text-on-surface select-none overflow-hidden border border-outline-variant/20">
+    <div className="flex w-screen h-screen bg-background text-on-surface border border-outline-variant/20 relative">
       <Sidebar activeTab={activeTab as any} onTabChange={setActiveTab as any} />
-      
+
       <main className="flex-1 h-full overflow-hidden relative">
         <AnimatePresence mode="wait">
           <motion.div

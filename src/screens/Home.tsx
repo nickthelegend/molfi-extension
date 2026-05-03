@@ -207,7 +207,7 @@ export function Home() {
 
       <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-background via-background to-transparent pt-16">
         <div className="bg-surface-container rounded-2xl p-4 border border-outline-variant/10 shadow-2xl relative">
-          <div className="flex items-center gap-3 bg-black/40 rounded-xl px-4 py-4 border border-white/5 focus-within:border-primary/40 transition-all shadow-inner">
+          <div className="flex items-center gap-3 bg-black rounded-xl px-4 py-4 border border-white/10 focus-within:border-primary/40 transition-all shadow-2xl">
             <Plus size={18} className="text-on-surface-variant hover:text-primary cursor-pointer transition-colors" />
             <input 
               type="text" 
