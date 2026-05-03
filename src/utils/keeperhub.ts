@@ -48,7 +48,7 @@ export const keeperHub = {
   getWalletIntegration: (id: string) => keeperHubFetch(`/integrations/web3/${id}`),
 };
 
-export const MOLFI_API_URL = 'http://localhost:3002/api';
+export const MOLFI_API_URL = 'http://192.168.1.6:3002/api';
 
 export const molfiOrchestrator = {
   // Task Orchestrator
