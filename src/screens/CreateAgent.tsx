@@ -13,7 +13,9 @@ import {
   ArrowRight,
   Info,
   Loader2,
-  Terminal
+  Terminal,
+  Users,
+  Brain
 } from 'lucide-react';
 import { useAccount, useBalance, useEnsName } from 'wagmi';
 import { useDebounce } from 'use-debounce';
@@ -24,6 +26,8 @@ const STRATEGIES = [
   { id: 'DCA', name: 'DCA', desc: 'Dollar Cost Averaging', icon: TrendingUp },
   { id: 'Momentum', name: 'Momentum', desc: 'Trend Following', icon: Zap },
   { id: 'Arbitrage', name: 'Arbitrage', desc: 'Cross-DEX Arbitrage', icon: ShieldCheck },
+  { id: 'Poly Copy', name: 'Poly Copy', desc: 'Copy Polymarket Whales', icon: Users },
+  { id: 'MiroFish Alpha', name: 'Swarm Alpha', desc: 'Swarm Prediction Intel', icon: Brain },
   { id: 'AI Free Form', name: 'AI Free Form', desc: 'Natural Language Logic', icon: Cpu },
 ];
 
@@ -69,6 +73,10 @@ export function CreateAgent({ onBack, onSuccess }: { onBack: () => void, onSucce
     }
   }, [debouncedDomain, checkAvailability]);
 
+  const [targetTrader, setTargetTrader] = useState('');
+
+  // ... existing code ...
+
   const handleCreate = async () => {
     if (!address || !name || !strategy || !funding) return;
     
@@ -76,6 +84,9 @@ export function CreateAgent({ onBack, onSuccess }: { onBack: () => void, onSucce
     setLoadingText('Initializing OWS Wallet...');
     
     try {
+      let agentId: string;
+      let agentWalletAddress: string;
+
       if (fullEnsDomain && ensAvailable) {
         // Multi-step flow: Init -> Register ENS -> Finalize
         const initRes = await fetch(`${API_URL}/agents/init`, {
@@ -86,12 +97,15 @@ export function CreateAgent({ onBack, onSuccess }: { onBack: () => void, onSucce
         const initJson = await initRes.json();
         if (!initJson.success) throw new Error(initJson.error);
 
+        agentId = initJson.agentId;
+        agentWalletAddress = initJson.agentWalletAddress;
+
         setLoadingText('Awaiting ENS Signature...');
-        const { txHash, success } = await registerSubdomain(fullEnsDomain, initJson.agentWalletAddress, 1);
+        const { txHash, success } = await registerSubdomain(fullEnsDomain, agentWalletAddress, 1);
         if (!success) throw new Error('ENS registration failed');
 
         setLoadingText('Finalizing Identity...');
-        const finalizeRes = await fetch(`${API_URL}/agents/${initJson.agentId}/finalize`, {
+        await fetch(`${API_URL}/agents/${agentId}/finalize`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -105,8 +119,6 @@ export function CreateAgent({ onBack, onSuccess }: { onBack: () => void, onSucce
             freeFormPrompt: strategy === 'AI Free Form' ? freeFormPrompt : null
           })
         });
-        const finalizeJson = await finalizeRes.json();
-        if (!finalizeJson.success) throw new Error(finalizeJson.error);
       } else {
         // One-step flow
         const res = await fetch(`${API_URL}/agents`, {
@@ -129,7 +141,30 @@ export function CreateAgent({ onBack, onSuccess }: { onBack: () => void, onSucce
         });
         const json = await res.json();
         if (!json.success) throw new Error(json.error);
+        agentId = json.data.agentId;
+        agentWalletAddress = json.data.walletAddress;
       }
+
+      // REGISTER TASK IN ORCHESTRATOR
+      setLoadingText('Scheduling Autonomy...');
+      const taskType = strategy === 'Poly Copy' ? 'polymarket_copy_trade' : 
+                      strategy === 'MiroFish Alpha' ? 'polymarket_swarm_alpha' : 
+                      'keeperhub_workflow';
+      
+      await fetch(`${API_URL}/tasks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          walletAddress: agentWalletAddress,
+          name: `${name} Automation`,
+          type: taskType,
+          schedule: 'minutely',
+          payload: {
+            targetWallet: targetTrader,
+            scale: 0.1 // Default scale for copy trading
+          }
+        })
+      });
 
       setLoadingText('Agent Live!');
       setTimeout(onSuccess, 1000);
@@ -267,6 +302,20 @@ export function CreateAgent({ onBack, onSuccess }: { onBack: () => void, onSucce
                   placeholder="Describe your custom trading logic in plain English..."
                   className="w-full h-32 bg-surface-container border border-outline-variant/10 rounded-2xl px-5 py-4 text-sm font-bold text-white placeholder:text-on-surface-variant/30 focus:outline-none focus:border-primary/50 transition-colors resize-none"
                 />
+              )}
+
+              {strategy === 'Poly Copy' && (
+                <div className="flex flex-col gap-2">
+                  <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest px-1">Target Trader Wallet</label>
+                  <input 
+                    type="text" 
+                    value={targetTrader}
+                    onChange={(e) => setTargetTrader(e.target.value)}
+                    placeholder="0x..."
+                    className="w-full bg-surface-container border border-outline-variant/10 rounded-2xl px-5 py-4 text-sm font-bold text-white placeholder:text-on-surface-variant/30 focus:outline-none focus:border-primary/50 transition-colors"
+                  />
+                  <p className="text-[8px] font-bold text-on-surface-variant/40 uppercase tracking-widest mt-1">The agent will automatically mirror trades from this wallet.</p>
+                </div>
               )}
             </motion.div>
           )}
