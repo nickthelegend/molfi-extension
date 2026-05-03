@@ -36,8 +36,7 @@ export function useEnsSubdomain() {
 
   const registerSubdomain = useCallback(async (
     fullDomain: string,
-    agentWalletAddress: string,
-    durationYears: number
+    agentWalletAddress: string
   ): Promise<{ txHash: string; success: boolean }> => {
     if (!walletClient || !publicClient || !userAddress) {
       throw new Error('Wallet not connected or client not initialized');

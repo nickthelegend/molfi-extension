@@ -6,7 +6,7 @@ import { SwapCard } from '../components/chat/SwapCard';
 import { SendCard } from '../components/chat/SendCard';
 import { KeeperHubCard } from '../components/chat/KeeperHubCard';
 import { PolymarketListCard } from '../components/chat/PolymarketListCard';
-import { motion, AnimatePresence } from 'framer-motion';
+
 
 export function Home() {
   const { address } = useAccount();

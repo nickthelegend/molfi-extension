@@ -37,8 +37,8 @@
     }
   ],
   "icons": {
-    "16": "favicon.svg",
-    "48": "favicon.svg",
-    "128": "favicon.svg"
+    "16": "logo.png",
+    "48": "logo.png",
+    "128": "logo.png"
   }
 }

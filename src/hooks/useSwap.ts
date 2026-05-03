@@ -1,8 +1,6 @@
 import { useState, useCallback } from 'react';
 import {
   createPublicClient,
-  createWalletClient,
-  custom,
   http,
   parseUnits,
   formatUnits,

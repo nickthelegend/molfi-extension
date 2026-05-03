@@ -1,4 +1,4 @@
-import Dexie, { type Table } from 'dexie';
+import { Dexie, type Table } from 'dexie';
 
 export interface SwarmHistory {
   id?: number;
@@ -12,15 +12,11 @@ export interface SwarmHistory {
   simulationLogs: any[];
 }
 
-export class MolfiDatabase extends Dexie {
-  swarmHistory!: Table<SwarmHistory>;
+// Initialize Dexie directly without class inheritance to be ultra-robust against ESM cycle issues
+export const db = new Dexie('MolfiDB') as Dexie & {
+  swarmHistory: Table<SwarmHistory>;
+};
 
-  constructor() {
-    super('MolfiDB');
-    this.version(1).stores({
-      swarmHistory: '++id, marketId, timestamp'
-    });
-  }
-}
-
-export const db = new MolfiDatabase();
+db.version(1).stores({
+  swarmHistory: '++id, marketId, timestamp'
+});

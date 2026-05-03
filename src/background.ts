@@ -47,7 +47,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Open the side panel
     // Note: chrome.sidePanel.open is available in Chrome 116+
     if (chrome.sidePanel) {
-      chrome.sidePanel.open({ tabId: sender.tab?.id });
+      (chrome.sidePanel as any).open({ tabId: sender.tab?.id });
     }
 
     // You could also store the pending research in storage for the side panel to pick up

@@ -98,7 +98,7 @@ export function CreateAgent({ onBack, onSuccess }: { onBack: () => void, onSucce
         agentWalletAddress = initJson.agentWalletAddress;
 
         setLoadingText('Awaiting ENS Signature...');
-        const { txHash, success } = await registerSubdomain(fullEnsDomain, agentWalletAddress, 1);
+        const { txHash, success } = await registerSubdomain(fullEnsDomain, agentWalletAddress);
         if (!success) throw new Error('ENS registration failed');
 
         setLoadingText('Finalizing Identity...');

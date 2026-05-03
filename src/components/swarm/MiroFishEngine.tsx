@@ -6,9 +6,7 @@ import {
   Terminal,
   BarChart3,
   Users,
-  Zap,
   ShieldCheck,
-  CheckCircle2,
   Network,
   Activity,
   FileText
@@ -35,8 +33,8 @@ export function MiroFishEngine({ marketId, question, historyId }: MiroFishEngine
   const [prepareProgress, setPrepareProgress] = useState(0);
   const [isCommitting, setIsCommitting] = useState(false);
 
-  const { data: hash, writeContract } = useWriteContract();
-  const { isLoading: isTxConfirming, isSuccess: isTxConfirmed } = useWaitForTransactionReceipt({ hash });
+  const { data: hash } = useWriteContract();
+  const { isLoading: isTxConfirming } = useWaitForTransactionReceipt({ hash });
 
   useEffect(() => {
     if (historyId) {
@@ -74,8 +72,6 @@ export function MiroFishEngine({ marketId, question, historyId }: MiroFishEngine
     }]);
   };
 
-  const [projectId, setProjectId] = useState<string | null>(null);
-  const [graphId, setGraphId] = useState<string | null>(null);
   const [simulationId, setSimulationId] = useState<string | null>(null);
 
   const startSwarm = async () => {
@@ -114,7 +110,6 @@ export function MiroFishEngine({ marketId, question, historyId }: MiroFishEngine
       if (!ontData.success) throw new Error(ontData.error || "Ontology failed");
       
       const pId = ontData.data.project_id;
-      setProjectId(pId);
       addLog("Ontology generated successfully.", "success");
 
       // 2. Build Graph
@@ -133,7 +128,6 @@ export function MiroFishEngine({ marketId, question, historyId }: MiroFishEngine
       
       const gResult = await pollTask(`${API_BASE}/api/graph/task/`, buildData.data.task_id);
       const gId = gResult.result?.graph_id || gResult.graph_id;
-      setGraphId(gId);
       addLog("Graph RAG mapped successfully.", "success");
 
       // 3. Create & Prepare Simulation

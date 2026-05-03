@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { keeperHub } from '../utils/keeperhub';
-import { Plus, Trash2, Zap, Play, Pause, AlertCircle, Loader2, BarChart3, ShieldCheck } from 'lucide-react';
+import { Plus, Trash2, Zap, Play, AlertCircle, Loader2, BarChart3, ShieldCheck } from 'lucide-react';
 import { API_URL } from '../constants/Config';
+import { useAccount } from 'wagmi';
 
 const TEMPLATES = [
   {
@@ -9,14 +10,14 @@ const TEMPLATES = [
     name: 'Balance Alert',
     icon: <ShieldCheck className="w-5 h-5" />,
     description: 'Notify when ETH balance drops below threshold',
-    config: (address: string) => ({
+    config: (walletAddr: string) => ({
       name: 'ETH Balance Watch',
       description: 'Notifies the Molfi App via push when balance < 0.1 ETH',
       nodes: [
         { id: 'trigger-1', type: 'trigger', data: { label: 'Every hour', config: { triggerType: 'Schedule', interval: 'hourly' } } },
-        { id: 'check-balance', type: 'action', data: { label: 'Check Balance', config: { actionType: 'web3/check-balance', network: '1', address } } },
+        { id: 'check-balance', type: 'action', data: { label: 'Check Balance', config: { actionType: 'web3/check-balance', network: '1', address: walletAddr } } },
         { id: 'condition-1', type: 'condition', data: { label: 'Below 0.1 ETH', config: { operator: '<', value: '0.1', field: '{{@check-balance:Balance.value}}' } } },
-        { id: 'notify-webhook', type: 'action', data: { label: 'Notify Molfi', config: { actionType: 'webhook/send', url: `${API_URL}/keeperhub/webhook`, method: 'POST', body: JSON.stringify({ walletAddress: address, title: 'Low Balance Alert', message: 'Your ETH balance is below 0.1 ETH' }) } } }
+        { id: 'notify-webhook', type: 'action', data: { label: 'Notify Molfi', config: { actionType: 'webhook/send', url: `${API_URL}/keeperhub/webhook`, method: 'POST', body: JSON.stringify({ walletAddress: walletAddr, title: 'Low Balance Alert', message: 'Your ETH balance is below 0.1 ETH' }) } } }
       ],
       edges: [
         { id: 'e1', source: 'trigger-1', target: 'check-balance' },
@@ -30,13 +31,13 @@ const TEMPLATES = [
     name: 'Supply Tracker',
     icon: <BarChart3 className="w-5 h-5" />,
     description: 'Monitor token supply changes',
-    config: (address: string) => ({
+    config: (walletAddr: string) => ({
       name: 'USDT Supply Tracker',
       description: 'Monitors USDT total supply and notifies on changes',
       nodes: [
         { id: 'trigger-1', type: 'trigger', data: { label: 'Every hour', config: { triggerType: 'Schedule', interval: 'hourly' } } },
         { id: 'read-contract', type: 'action', data: { label: 'Read Total Supply', config: { actionType: 'web3/read-contract', network: '1', contractAddress: '0xdAC17F958D2ee523a2206206994597C13D831ec7', functionName: 'totalSupply' } } },
-        { id: 'notify-webhook', type: 'action', data: { label: 'Notify Molfi', config: { actionType: 'webhook/send', url: `${API_URL}/keeperhub/webhook`, method: 'POST', body: JSON.stringify({ walletAddress: address, title: 'Contract Update', message: 'USDT Total Supply updated.' }) } } }
+        { id: 'notify-webhook', type: 'action', data: { label: 'Notify Molfi', config: { actionType: 'webhook/send', url: `${API_URL}/keeperhub/webhook`, method: 'POST', body: JSON.stringify({ walletAddress: walletAddr, title: 'Contract Update', message: 'USDT Total Supply updated.' }) } } }
       ],
       edges: [
         { id: 'e1', source: 'trigger-1', target: 'read-contract' },
@@ -49,9 +50,9 @@ const TEMPLATES = [
     name: 'Limit Order',
     icon: <Zap className="w-5 h-5" />,
     description: 'Execute swap when price hits target',
-    config: (address: string, data?: any) => ({
+    config: (walletAddr: string, data?: any) => ({
       name: `Limit Order for ${data?.targetToken || 'Token'}`,
-      description: 'Automated Uniswap swap via Molfi Agent',
+      description: `Automated Uniswap swap via Molfi Agent for ${walletAddr.slice(0, 6)}`,
       nodes: [
         { id: 'trigger-1', type: 'trigger', data: { label: 'Price Hit', config: { triggerType: 'Schedule', interval: 'hourly' } } },
         { id: 'swap-action', type: 'action', data: { label: 'Uniswap Swap', config: { actionType: 'uniswap/swap', network: '1', tokenIn: 'ETH', tokenOut: data?.targetToken || '0x...', amount: '0.1' } } }
@@ -64,13 +65,13 @@ const TEMPLATES = [
     name: 'Health Monitor',
     icon: <ShieldCheck className="w-5 h-5" />,
     description: 'Protect Aave position from liquidation',
-    config: (address: string) => ({
+    config: (walletAddr: string) => ({
       name: 'Aave Health Guard',
       description: 'Notifies when health factor < 1.2',
       nodes: [
         { id: 'trigger-1', type: 'trigger', data: { label: 'Every 30m', config: { triggerType: 'Schedule', interval: 'hourly' } } },
-        { id: 'check-health', type: 'action', data: { label: 'Check Health', config: { actionType: 'aave-v3/get-user-data', network: '1', user: address } } },
-        { id: 'notify-webhook', type: 'action', data: { label: 'Notify Molfi', config: { actionType: 'webhook/send', url: `${API_URL}/keeperhub/webhook`, method: 'POST', body: JSON.stringify({ walletAddress: address, title: 'Aave Risk Alert', message: 'Your health factor is dropping!' }) } } }
+        { id: 'check-health', type: 'action', data: { label: 'Check Health', config: { actionType: 'aave-v3/get-user-data', network: '1', user: walletAddr } } },
+        { id: 'notify-webhook', type: 'action', data: { label: 'Notify Molfi', config: { actionType: 'webhook/send', url: `${API_URL}/keeperhub/webhook`, method: 'POST', body: JSON.stringify({ walletAddress: walletAddr, title: 'Aave Risk Alert', message: 'Your health factor is dropping!' }) } } }
       ],
       edges: [{ id: 'e1', source: 'trigger-1', target: 'check-health' }, { id: 'e2', source: 'check-health', target: 'notify-webhook' }]
     })
@@ -78,6 +79,7 @@ const TEMPLATES = [
 ];
 
 export function Automations() {
+  const { address } = useAccount();
   const [workflows, setWorkflows] = useState<any[]>([]);
   const [integrations, setIntegrations] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);

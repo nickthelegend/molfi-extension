@@ -1,3 +1,4 @@
+import { BaseError } from 'viem'
 import { createAppKit } from '@reown/appkit/react'
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
 import { mainnet, arbitrum, base, polygon } from '@wagmi/core/chains'
@@ -40,11 +41,18 @@ createAppKit({
   networks: networks as [any, ...any[]],
   projectId,
   metadata,
-  defaultNetwork: ogChain,
+  defaultNetwork: base,
   features: {
-    analytics: true
-  }
+    analytics: false,
+    email: true,
+    socials: ['google', 'x', 'github', 'discord', 'apple'],
+    emailShowWallets: true,
+  },
+  allWallets: 'HIDE', // Helps avoid loading too many external assets in extension
 })
+
+// Ensure BaseError is initialized for inheritance
+if (BaseError) { /* No-op */ }
 
 export function Web3Provider({ children }: { children: React.ReactNode }) {
   return (

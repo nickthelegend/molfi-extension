@@ -90,7 +90,7 @@ export function SwarmNeuralMap({ agentProfiles, simulationLogs, isActive }: Swar
           height={320}
           enableNodeDrag={false}
           showNavInfo={false}
-          onNodeClick={(node) => {
+          onNodeClick={(node: any) => {
             if (node.id === "Topic") return;
             setSelectedAgent(node);
           }}

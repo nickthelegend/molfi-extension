@@ -53,7 +53,7 @@ function injectResearchButton() {
       marketQuestion: marketQuestion,
       marketId: marketId,
       url: window.location.href
-    }, (response) => {
+    }, (response: any) => {
       if (response && response.success) {
         btn.innerHTML = 'Research Sent!';
         setTimeout(() => {

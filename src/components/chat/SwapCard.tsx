@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useMemo, useState } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { 
   Flashlight, 
   ArrowRight, 
@@ -10,7 +10,7 @@ import {
   GitBranch
 } from 'lucide-react';
 import { useSwap } from '../../hooks/useSwap';
-import { motion, AnimatePresence } from 'framer-motion';
+
 
 interface SwapCardProps {
   payload: {
@@ -65,11 +65,10 @@ const CHAIN_NAMES: Record<number, string> = {
 
 export const SwapCard: React.FC<SwapCardProps> = ({ payload }) => {
   const [fromChain, setFromChain] = useState<number>(1);
-  const [toChain, setToChain] = useState<number>(1);
 
   const {
     getQuote, executeSwap, step, quote,
-    txHash, error, reset
+    error, reset
   } = useSwap();
 
   const swapStepData = payload.plan.steps.find(s => s.action === 'swap');
@@ -78,7 +77,7 @@ export const SwapCard: React.FC<SwapCardProps> = ({ payload }) => {
   useEffect(() => {
     if (swapParams) {
       setFromChain(swapParams.fromChain || swapParams.chainId || 1);
-      setToChain(swapParams.toChain || swapParams.fromChain || swapParams.chainId || 1);
+      setFromChain(swapParams.fromChain || swapParams.chainId || 1);
     }
   }, [swapParams]);
 

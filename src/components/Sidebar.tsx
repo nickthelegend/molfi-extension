@@ -7,7 +7,6 @@ import {
   Compass, 
   BookText, 
   User,
-  LayoutDashboard,
   TrendingUp,
   Zap,
   Send
