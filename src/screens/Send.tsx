@@ -1,20 +1,20 @@
 import React, { useState } from 'react';
 import { ArrowLeft, User, Coins, ChevronRight, ShieldCheck, Zap } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { useAccount, useBalance } from 'wagmi';
-
-export function Send() {
-  const navigate = useNavigate();
+export function Send({ onBack }: { onBack: () => void }) {
   const { address } = useAccount();
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('');
   const { data: balance } = useBalance({ address });
 
+  console.log(`[Send] Render. Address: ${address}, Recipient: ${recipient}, Amount: ${amount}`);
+  console.log(`[Send] Balance: ${balance?.formatted} ${balance?.symbol}`);
+
   return (
     <div className="w-full h-full flex flex-col bg-background p-6 pt-12">
       <div className="flex items-center justify-between mb-10">
         <button 
-          onClick={() => navigate(-1)}
+          onClick={onBack}
           className="w-10 h-10 rounded-full bg-surface-container border border-outline-variant/10 flex items-center justify-center text-white hover:bg-primary/20 transition-all"
         >
           <ArrowLeft size={18} />

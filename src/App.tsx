@@ -18,17 +18,22 @@ import { AnimatePresence, motion } from 'framer-motion';
 type SidebarTab = 'home' | 'history' | 'rewards' | 'wallet' | 'agents' | 'discover' | 'logbook' | 'profile' | 'prediction' | 'swap' | 'automations' | 'send';
 
 function App() {
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const [activeTab, setActiveTab] = useState<SidebarTab>('home');
 
+  console.log(`[App] Render. Tab: ${activeTab}, Connected: ${isConnected}, Address: ${address}`);
+
   if (!isConnected) {
+    console.log('[App] Showing ConnectWall');
     return <ConnectWall />;
   }
 
   const renderContent = () => {
+    console.log(`[App] Rendering content for tab: ${activeTab}`);
     switch (activeTab) {
       case 'home': return <Home />;
       case 'wallet': return <Wallet onAction={(action) => {
+        console.log(`[App] Wallet action: ${action}`);
         if (action === 'swap') setActiveTab('swap');
       }} />;
       case 'discover': return <Discover />;
@@ -37,9 +42,15 @@ function App() {
       case 'prediction': return <Prediction />;
       case 'agents': return <Agents />;
       case 'automations': return <Automations />;
-      case 'swap': return <Swap onBack={() => setActiveTab('wallet')} />;
+      case 'swap': return <Swap onBack={() => {
+        console.log('[App] Swap back to wallet');
+        setActiveTab('wallet');
+      }} />;
       case 'profile': return <Profile />;
-      case 'send': return <Send />;
+      case 'send': return <Send onBack={() => {
+        console.log('[App] Send back to wallet');
+        setActiveTab('wallet');
+      }} />;
       default: return <Home />;
     }
   };

@@ -28,6 +28,9 @@ export function Swap({ onBack }: { onBack: () => void }) {
   const [tokenOut, setTokenOut] = useState(TOKENS[1]);
   const [isQuotingLocal, setIsQuotingLocal] = useState(false);
 
+  console.log(`[Swap] Render. Address: ${address}, Step: ${step}, Input: ${inputAmount}`);
+  console.log(`[Swap] Pair: ${tokenIn.symbol} -> ${tokenOut.symbol}`);
+
   const { data: balanceIn } = useBalance({ 
     address, 
     token: tokenIn.address === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' || tokenIn.address === '0x0000000000000000000000000000000000000000' ? undefined : tokenIn.address as `0x${string}`,
@@ -36,12 +39,15 @@ export function Swap({ onBack }: { onBack: () => void }) {
   const { getQuote, executeSwap, step, quote, error, reset } = useSwap();
 
   useEffect(() => {
+    console.log(`[Swap] Quote Effect. Amount: ${inputAmount}`);
     if (!inputAmount || parseFloat(inputAmount) <= 0) {
+      console.log('[Swap] Resetting quote');
       reset();
       return;
     }
 
     const timer = setTimeout(async () => {
+      console.log(`[Swap] Fetching quote for ${inputAmount} ${tokenIn.symbol} -> ${tokenOut.symbol}`);
       setIsQuotingLocal(true);
       await getQuote({
         chainId: 16661, 
@@ -52,13 +58,18 @@ export function Swap({ onBack }: { onBack: () => void }) {
         amountIn: inputAmount,
       });
       setIsQuotingLocal(false);
+      console.log('[Swap] Quoting local finished');
     }, 600);
 
     return () => clearTimeout(timer);
   }, [inputAmount, tokenIn, tokenOut]);
 
   const handleSwap = async () => {
-    if (!quote || step === 'done') return;
+    console.log('[Swap] handleSwap called');
+    if (!quote || step === 'done') {
+      console.warn('[Swap] No quote or already done');
+      return;
+    }
     await executeSwap({
       chainId: 16661,
       tokenIn: tokenIn.address as `0x${string}`,

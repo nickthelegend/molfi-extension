@@ -19,7 +19,13 @@ export function Home() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    console.log('[Home] Mounted');
+    if (address) console.log('[Home] Account connected:', address);
+  }, [address]);
+
+  useEffect(() => {
     if (scrollRef.current) {
+      console.log('[Home] Scrolling to bottom');
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, isTyping]);
@@ -27,12 +33,14 @@ export function Home() {
   useEffect(() => {
     const fetchPortfolio = async () => {
       if (!address) return;
+      console.log(`[Home] Fetching portfolio for ${address}...`);
       try {
         const res = await fetch(`${API_URL}/portfolio?walletAddress=${address}`);
         const json = await res.json();
+        console.log('[Home] Portfolio response:', json);
         if (json.success) setTotalValue(json.data.totalValue);
       } catch (error) {
-        console.error('Home portfolio fetch error:', error);
+        console.error('[Home] Portfolio fetch error:', error);
       }
     };
     fetchPortfolio();
@@ -40,26 +48,61 @@ export function Home() {
 
   const handleSend = async (customMessage?: string) => {
     const text = customMessage || input;
-    if (!text.trim() || !address) return;
+    console.log(`[Home] handleSend called with text: "${text}"`);
+    if (!text.trim()) {
+      console.warn('[Home] Empty text, skipping');
+      return;
+    }
+    if (!address) {
+      console.warn('[Home] No account connected, skipping');
+      return;
+    }
 
     const userMsg = { role: 'user', content: text, timestamp: new Date() };
+    console.log('[Home] Adding user message to state');
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setIsTyping(true);
 
     try {
+      console.log(`[Home] POST -> ${API_URL}/chat/ask`);
+      console.log(`[Home] Payload:`, { message: text, walletAddress: address });
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        console.warn('[Home] Request timeout reached (15s)');
+        controller.abort();
+      }, 15000);
+
       const res = await fetch(`${API_URL}/chat/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, walletAddress: address })
+        body: JSON.stringify({ message: text, walletAddress: address }),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
+
+      console.log(`[Home] Response status: ${res.status}`);
       const json = await res.json();
+      console.log('[Home] Response body:', json);
+      
       if (json.success) {
+        console.log('[Home] Adding assistant message to state');
         setMessages(prev => [...prev, json.data]);
+      } else {
+        console.error('[Home] API returned success: false', json.error);
+        throw new Error(json.error || 'Unknown API error');
       }
-    } catch (error) {
-      console.error('Chat error:', error);
+    } catch (error: any) {
+      console.error('[Home] handleSend Error:', error);
+      const errorMsg = { 
+        role: 'assistant', 
+        content: `Error: ${error.message === 'signal is aborted' ? 'Request timed out.' : 'Failed to reach agent.'} Please ensure the API is running at ${API_URL}`, 
+        timestamp: new Date() 
+      };
+      setMessages(prev => [...prev, errorMsg]);
     } finally {
+      console.log('[Home] isTyping -> false');
       setIsTyping(false);
     }
   };
