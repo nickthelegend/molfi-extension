@@ -1,17 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Bot, Sparkles, PlusCircle, ShieldCheck, Zap, Loader2, FileText } from 'lucide-react';
+import { Bot, Sparkles, PlusCircle, ShieldCheck, Zap, Loader2, FileText, Terminal } from 'lucide-react';
 import { useAccount } from 'wagmi';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { API_URL } from '../constants/Config';
 import { CreateAgent } from './CreateAgent';
 import { SwarmReport } from '../components/SwarmReport';
+import { useAgentActivity } from '../hooks/useAgentActivity';
 
 export function Agents() {
-  // ... existing states ...
   const { address } = useAccount();
   const [agents, setAgents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
+  
+  // Real-time activity feed
+  const { activities } = useAgentActivity(address);
 
   const fetchAgents = useCallback(async () => {
     if (!address) return;
@@ -52,7 +55,27 @@ export function Agents() {
         <h1 className="text-2xl font-black text-white uppercase tracking-tight">AI Agents</h1>
       </div>
 
-      {/* Hero section ... */}
+      {/* Live Activity Terminal */}
+      {activities.length > 0 && (
+        <div className="bg-black/40 rounded-2xl p-4 border border-primary/10 font-mono overflow-hidden">
+          <div className="flex items-center gap-2 mb-3">
+            <Terminal size={14} className="text-primary animate-pulse" />
+            <span className="text-[10px] font-black text-primary uppercase tracking-widest">Live Agent Telemetry</span>
+          </div>
+          <div className="flex flex-col gap-2 max-h-32 overflow-y-auto pr-2 scrollbar-hide">
+            {activities.map((act, i) => (
+              <div key={i} className="text-[10px] flex gap-2 leading-relaxed">
+                <span className="text-on-surface-variant shrink-0">[{new Date(act.timestamp).toLocaleTimeString()}]</span>
+                <span className={act.type === 'TRADE_EXECUTED' ? 'text-green-400 font-bold' : 'text-on-surface'}>
+                  {act.message}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Hero section */}
       <div className="bg-surface-container rounded-[2rem] p-8 border border-outline-variant/10 relative overflow-hidden group">
         <div className="absolute -top-12 -right-12 w-32 h-32 bg-primary/10 blur-[60px] rounded-full group-hover:bg-primary/20 transition-all duration-700" />
         
@@ -142,20 +165,6 @@ export function Agents() {
             </>
           )}
         </div>
-      </div>
-    </div>
-  );
-}
-
-function AgentTemplate({ icon: Icon, title, desc, onClick }: any) {
-  return (
-    <div onClick={onClick} className="flex items-center gap-4 p-4 rounded-2xl bg-surface-container/50 border border-outline-variant/5 hover:bg-white/5 transition-all cursor-pointer group">
-      <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-on-surface-variant group-hover:text-primary transition-colors">
-        <Icon size={18} />
-      </div>
-      <div className="flex flex-col gap-0.5">
-        <span className="text-xs font-black text-white uppercase tracking-tight">{title}</span>
-        <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-widest">{desc}</span>
       </div>
     </div>
   );

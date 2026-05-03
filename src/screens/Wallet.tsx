@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ArrowDownLeft, RefreshCw, ArrowUpRight, ListFilter, EyeOff, Loader2, ShieldCheck } from 'lucide-react';
+import { ArrowDownLeft, RefreshCw, ArrowUpRight, ListFilter, EyeOff, Loader2, ShieldCheck, FileText, ExternalLink } from 'lucide-react';
 import { useAccount, useBalance, useEnsName } from 'wagmi';
 import { API_URL } from '../constants/Config';
 
@@ -10,7 +10,7 @@ export function Wallet({ onAction }: { onAction: (action: string) => void }) {
 
   const [portfolioData, setPortfolioData] = useState<any>(null);
   const [agentWallets, setAgentWallets] = useState<any[]>([]);
-  const [activeSubTab, setActiveSubTab] = useState<'tokens' | 'agents'>('tokens');
+  const [activeSubTab, setActiveSubTab] = useState<'tokens' | 'agents' | 'reports'>('tokens');
   const [isLoading, setIsLoading] = useState(true);
   const [tokenPrices, setTokenPrices] = useState<Record<string, number>>({});
 
@@ -91,6 +91,9 @@ export function Wallet({ onAction }: { onAction: (action: string) => void }) {
             <button onClick={() => setActiveSubTab('agents')} className={`text-xs font-black uppercase tracking-wider relative transition-colors ${activeSubTab === 'agents' ? 'text-white' : 'text-on-surface-variant hover:text-white'}`}>
               Agents {activeSubTab === 'agents' && <div className="absolute -bottom-2 left-0 w-full h-0.5 bg-primary" />}
             </button>
+            <button onClick={() => setActiveSubTab('reports')} className={`text-xs font-black uppercase tracking-wider relative transition-colors ${activeSubTab === 'reports' ? 'text-white' : 'text-on-surface-variant hover:text-white'}`}>
+              Reports {activeSubTab === 'reports' && <div className="absolute -bottom-2 left-0 w-full h-0.5 bg-primary" />}
+            </button>
           </div>
           <button className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-on-surface-variant"><ListFilter size={16} /></button>
         </div>
@@ -107,24 +110,50 @@ export function Wallet({ onAction }: { onAction: (action: string) => void }) {
                 return <TokenItem key={asset.address} name={asset.symbol} symbol={asset.symbol} balance={parseFloat(asset.amount).toFixed(2)} value={`$${value.toFixed(2)}`} change="+0.00%" color="text-green-400" icon={`https://api.dicebear.com/7.x/identicon/svg?seed=${asset.symbol}`} />;
               })}
             </>
-          ) : (
-            <>
+          ) : activeSubTab === 'agents' ? (
+            <div className="flex flex-col gap-2">
               {agentWallets.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-on-surface-variant/20 gap-4"><ShieldCheck size={48} strokeWidth={1} /><span className="text-[10px] font-black uppercase tracking-[0.2em]">No active agent wallets</span></div>
               ) : (
-                <div className="flex flex-col gap-2">
-                  {agentWallets.map(agent => (
-                    <div key={agent._id} className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-outline-variant/5 hover:bg-white/10 transition-all cursor-pointer group">
-                       <div className="flex items-center gap-3">
-                         <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-black transition-all"><ShieldCheck size={20} /></div>
-                         <div className="flex flex-col"><span className="text-sm font-black text-white">{agent.name}</span><span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">{agent.agentWalletAddress.slice(0,10)}...</span></div>
-                       </div>
-                       <div className="flex flex-col items-end"><span className="text-sm font-black text-primary">+{agent.totalPnLPct}%</span><span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">PnL (All Time)</span></div>
+                agentWallets.map(agent => (
+                  <div key={agent._id} className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-outline-variant/5 hover:bg-white/10 transition-all cursor-pointer group">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-black transition-all"><ShieldCheck size={20} /></div>
+                      <div className="flex flex-col"><span className="text-sm font-black text-white">{agent.name}</span><span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">{agent.agentWalletAddress.slice(0,10)}...</span></div>
                     </div>
-                  ))}
+                    <div className="flex flex-col items-end"><span className="text-sm font-black text-primary">+{agent.totalPnLPct}%</span><span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">PnL (All Time)</span></div>
+                  </div>
+                ))
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {portfolioData?.researchReports?.length > 0 ? (
+                portfolioData.researchReports.map((report: any, idx: number) => (
+                  <a 
+                    key={idx} 
+                    href={report.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-outline-variant/5 hover:bg-primary/5 hover:border-primary/20 transition-all cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-black transition-all"><FileText size={20} /></div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-black text-white group-hover:text-primary transition-colors">{report.title}</span>
+                        <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">{new Date(report.date).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                    <ExternalLink size={16} className="text-on-surface-variant group-hover:text-primary transition-colors" />
+                  </a>
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-on-surface-variant/20 gap-4">
+                  <FileText size={48} strokeWidth={1} />
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">No research reports found</span>
                 </div>
               )}
-            </>
+            </div>
           )}
         </div>
       </div>

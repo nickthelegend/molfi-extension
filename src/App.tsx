@@ -12,9 +12,10 @@ import { Agents } from './screens/Agents';
 import { Swap } from './screens/Swap';
 import { Automations } from './screens/Automations';
 import { Profile } from './screens/Profile';
+import { Send } from './screens/Send';
 import { AnimatePresence, motion } from 'framer-motion';
 
-type SidebarTab = 'home' | 'history' | 'rewards' | 'wallet' | 'agents' | 'discover' | 'logbook' | 'profile' | 'prediction' | 'swap' | 'automations';
+type SidebarTab = 'home' | 'history' | 'rewards' | 'wallet' | 'agents' | 'discover' | 'logbook' | 'profile' | 'prediction' | 'swap' | 'automations' | 'send';
 
 function App() {
   const { isConnected } = useAccount();
@@ -38,6 +39,7 @@ function App() {
       case 'automations': return <Automations />;
       case 'swap': return <Swap onBack={() => setActiveTab('wallet')} />;
       case 'profile': return <Profile />;
+      case 'send': return <Send />;
       default: return <Home />;
     }
   };
