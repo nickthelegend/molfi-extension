@@ -1,14 +1,15 @@
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === "POLYMARKET_DETECTED") {
-    console.log("[Molfi] Signal received:", message.question);
+  if (message.type === "PROTOCOL_DETECTED" || message.type === "POLYMARKET_DETECTED") {
+    console.log("[Molfi] Signal received:", message.protocol || "Polymarket");
     
-    chrome.storage.local.set({ 
-      pendingSwarm: {
-        question: message.question,
-        marketId: message.url.split('/').pop(),
-        timestamp: Date.now()
-      }
-    });
+    const context = {
+      protocol: message.protocol || "Polymarket",
+      url: message.url,
+      data: message.data || {},
+      timestamp: Date.now()
+    };
+
+    chrome.storage.local.set({ currentContext: context });
 
     // Attempt to open the side panel
     if (chrome.sidePanel && sender.tab) {
@@ -18,7 +19,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         enabled: true
       });
       chrome.sidePanel.open({ tabId: sender.tab.id }).catch(err => {
-        console.log("Sidepanel open failed, likely needs user gesture or is already open:", err);
+        console.log("Sidepanel open failed:", err);
       });
     }
   }

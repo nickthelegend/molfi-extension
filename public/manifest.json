@@ -12,7 +12,10 @@
   ],
   "host_permissions": [
     "https://polymarket.com/*",
-    "http://localhost:5001/*"
+    "https://app.uniswap.org/*",
+    "https://app.aave.com/*",
+    "http://localhost:5001/*",
+    "http://localhost:3002/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -25,7 +28,11 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://polymarket.com/event/*"],
+      "matches": [
+        "https://polymarket.com/event/*",
+        "https://app.uniswap.org/*",
+        "https://app.aave.com/*"
+      ],
       "js": ["content.js"]
     }
   ],

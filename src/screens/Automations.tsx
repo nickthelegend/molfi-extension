@@ -44,6 +44,37 @@ const TEMPLATES = [
         { id: 'e2', source: 'read-contract', target: 'notify-webhook' }
       ]
     })
+  },
+  {
+    id: 'uniswap-limit',
+    name: 'Limit Order',
+    icon: <Zap className="w-5 h-5" />,
+    description: 'Execute swap when price hits target',
+    config: (address: string, data?: any) => ({
+      name: `Limit Order for ${data?.targetToken || 'Token'}`,
+      description: 'Automated Uniswap swap via Molfi Agent',
+      nodes: [
+        { id: 'trigger-1', type: 'trigger', data: { label: 'Price Hit', config: { triggerType: 'Schedule', interval: 'hourly' } } },
+        { id: 'swap-action', type: 'action', data: { label: 'Uniswap Swap', config: { actionType: 'uniswap/swap', network: '1', tokenIn: 'ETH', tokenOut: data?.targetToken || '0x...', amount: '0.1' } } }
+      ],
+      edges: [{ id: 'e1', source: 'trigger-1', target: 'swap-action' }]
+    })
+  },
+  {
+    id: 'aave-rebalance',
+    name: 'Health Monitor',
+    icon: <ShieldCheck className="w-5 h-5" />,
+    description: 'Protect Aave position from liquidation',
+    config: (address: string) => ({
+      name: 'Aave Health Guard',
+      description: 'Notifies when health factor < 1.2',
+      nodes: [
+        { id: 'trigger-1', type: 'trigger', data: { label: 'Every 30m', config: { triggerType: 'Schedule', interval: 'hourly' } } },
+        { id: 'check-health', type: 'action', data: { label: 'Check Health', config: { actionType: 'aave-v3/get-user-data', network: '1', user: address } } },
+        { id: 'notify-webhook', type: 'action', data: { label: 'Notify Molfi', config: { actionType: 'webhook/send', url: `${API_URL}/keeperhub/webhook`, method: 'POST', body: JSON.stringify({ walletAddress: address, title: 'Aave Risk Alert', message: 'Your health factor is dropping!' }) } } }
+      ],
+      edges: [{ id: 'e1', source: 'trigger-1', target: 'check-health' }, { id: 'e2', source: 'check-health', target: 'notify-webhook' }]
+    })
   }
 ];
 
@@ -53,9 +84,26 @@ export function Automations() {
   const [integrations, setIntegrations] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [context, setContext] = useState<any>(null);
 
   useEffect(() => {
     fetchData();
+    
+    // Load context from local storage
+    chrome.storage.local.get(['currentContext'], (result) => {
+      if (result.currentContext) {
+        setContext(result.currentContext);
+      }
+    });
+
+    // Listen for context updates
+    const listener = (changes: any) => {
+      if (changes.currentContext) {
+        setContext(changes.currentContext.newValue);
+      }
+    };
+    chrome.storage.onChanged.addListener(listener);
+    return () => chrome.storage.onChanged.removeListener(listener);
   }, []);
 
   const fetchData = async () => {
@@ -193,6 +241,41 @@ export function Automations() {
             )}
           </div>
         </section>
+
+        {context && (
+          <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold flex items-center gap-2 text-on-surface">
+                <BarChart3 className="w-5 h-5 text-primary" />
+                Suggested for {context.protocol}
+              </h2>
+              <button 
+                onClick={() => { setContext(null); chrome.storage.local.remove('currentContext'); }} 
+                className="text-[10px] text-on-surface-variant/40 hover:text-primary uppercase font-bold tracking-widest"
+              >
+                Clear
+              </button>
+            </div>
+            <div className="p-6 bg-primary/5 border border-primary/20 rounded-3xl group hover:border-primary/40 transition-all cursor-pointer"
+                 onClick={() => createFromTemplate(context.protocol === 'Uniswap' ? TEMPLATES[2] : TEMPLATES[3])}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-bold text-primary mb-1">
+                    {context.protocol === 'Uniswap' ? 'Start a Limit Order' : 'Monitor Health Factor'}
+                  </h4>
+                  <p className="text-xs text-on-surface-variant/60">
+                    {context.protocol === 'Uniswap' 
+                      ? `We detected you are trading on Uniswap. Want to automate this swap?` 
+                      : `Keep your Aave positions safe with automated liquidation protection.`}
+                  </p>
+                </div>
+                <div className="w-10 h-10 bg-primary text-on-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
+                  <Play className="w-5 h-5 fill-current" />
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         <section>
           <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-on-surface">
